@@ -29,3 +29,4 @@ COPERNICUS_INSTANCE_ID = "58cc80db-773c-4a02-8873-3825522ef875"
 
 # [durable_objects]
 # migrations = [{ tag = "v1", new_classes = ["AgentSession"] }]
+
