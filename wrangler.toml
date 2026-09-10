@@ -1,0 +1,31 @@
+name = "agriboot"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# Ne pas creer de nouveau Worker : on remplace le code de l'existant.
+
+[vars]
+APP_NAME = "FLA7I AI"
+APP_VERSION = "5.0.0"
+COPERNICUS_INSTANCE_ID = "58cc80db-773c-4a02-8873-3825522ef875"
+
+# Secrets existants (ne pas supprimer) :
+#   wrangler secret put CDSE_CLIENT_ID
+#   wrangler secret put CDSE_CLIENT_SECRET
+#   wrangler secret put openrouter_API_KEY
+#   wrangler secret put PERENUAL_API_KEY
+# Optionnels : Gemini_API_Key, GROQ_API_KEY, cerebras_api_key, WEATHER_API_KEY, Workers_AI
+
+# Decommenter UNIQUEMENT si la D1 existe deja (ne jamais recreer la base) :
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "plants"
+# database_id = "<EXISTING_ID>"
+
+# Decommenter quand pret pour la memoire persistante :
+# [[durable_objects.bindings]]
+# name = "AGENT_SESSION"
+# class_name = "AgentSession"
+
+# [durable_objects]
+# migrations = [{ tag = "v1", new_classes = ["AgentSession"] }]
