@@ -1,0 +1,1076 @@
+<html lang="ar" dir="rtl"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroSynth — الوكيل الفلاحي الذكي</title>
+<link rel="icon" href="https://agro-synth.github.io/AgroSynth/1000007537.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+<style>
+:root{
+  --bg:#101010; --panel:#171717; --panel-2:#1d1d1b; --panel-3:#232321;
+  --line:rgba(255,255,255,.085); --line-strong:rgba(255,255,255,.14);
+  --text:#f4f1eb; --muted:#a5a29b; --dim:#72716c;
+  --accent:#d97757; --accent-2:#e58b6c; --accent-soft:rgba(217,119,87,.12);
+  --green:#72b28a; --danger:#ef6b6b;
+  --shadow:0 20px 70px rgba(0,0,0,.35); --radius:14px;
+}
+[data-theme="light"]{
+  --bg:#f7f7f5; --panel:#ffffff; --panel-2:#f1f0ec; --panel-3:#e9e8e3;
+  --line:rgba(0,0,0,.08); --line-strong:rgba(0,0,0,.14);
+  --text:#1a1917; --muted:#66645f; --dim:#96938c;
+  --accent:#c45f3d; --accent-2:#d26f4d; --accent-soft:rgba(196,95,61,.10);
+  --green:#4f8b68; --danger:#c74747;
+  --shadow:0 20px 60px rgba(35,31,26,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0} html,body{width:100%;height:100%}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans Arabic','Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+button,input{font:inherit}
+button{border:0;cursor:pointer}
+.app-shell{height:100%;display:flex;direction:rtl;background:var(--bg)}
+.sidebar{width:272px;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;padding:14px 12px;gap:10px;flex-shrink:0}
+.side-top{display:flex;align-items:center;justify-content:space-between;padding:6px 4px 12px}
+.brand-mini{display:flex;align-items:center;gap:10px;font-weight:700}
+.brand-mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#9f4f37);display:grid;place-items:center;color:#fff;font-size:14px;font-weight:800;box-shadow:0 8px 24px rgba(217,119,87,.22);overflow:hidden}
+.brand-mark img{width:100%;height:100%;object-fit:cover}
+.msg-wrapper.bot .msg-avatar img,.msg-wrapper.error .msg-avatar img,.typing-wrapper .msg-avatar img{width:100%;height:100%;object-fit:cover;border-radius:9px}
+.brand-mini span{font-size:15px}.new-chat{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);border-radius:12px;cursor:pointer;transition:.18s ease;font-weight:600}
+.new-chat:hover{background:var(--panel-3);border-color:var(--line-strong);transform:translateY(-1px)}
+.side-section{padding:8px 5px 0}.side-title{font-size:11px;color:var(--dim);padding:0 8px 8px;font-weight:700;letter-spacing:.2px}
+.side-item{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;color:var(--muted);font-size:13px;cursor:pointer;transition:.18s ease}
+.side-item:hover{background:var(--panel-2);color:var(--text)} .side-item.active{background:var(--accent-soft);color:var(--text)} .side-icon{width:22px;text-align:center}
+.side-spacer{flex:1}.side-footer{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:4px}
+.account{display:flex;align-items:center;gap:10px;padding:8px 10px}.avatar{width:30px;height:30px;border-radius:50%;background:var(--panel-3);display:grid;place-items:center;font-size:12px;flex-shrink:0}.account strong{font-size:12px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.account small{font-size:10px;color:var(--dim);display:block;margin-top:1px}
+.logout-btn{background:transparent;color:var(--muted);width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex-shrink:0}.logout-btn:hover{background:var(--panel-3);color:var(--danger)}
+.sessions-list{max-height:180px;overflow-y:auto;display:grid;gap:2px}
+.sessions-list::-webkit-scrollbar{width:6px}.sessions-list::-webkit-scrollbar-thumb{background:var(--panel-3);border-radius:30px}
+.session-row{padding:8px 10px;border-radius:9px;font-size:12px;color:var(--muted);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.session-row:hover{background:var(--panel-2);color:var(--text)}
+.session-row.active{background:var(--accent-soft);color:var(--text)}
+.side-empty{font-size:11px;color:var(--dim);padding:6px 10px}
+.main{min-width:0;flex:1;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+.topbar{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(14px);z-index:4}
+.model-wrap{display:flex;align-items:center;gap:10px}.model-btn{height:38px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;font-size:13px}.chev{font-size:10px;color:var(--dim)}
+.live{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted)}.live i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(114,178,138,.10)}
+.top-actions{display:flex;gap:6px}.icon-btn{width:36px;height:36px;border-radius:9px;background:transparent;border:1px solid transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;transition:.18s ease}.icon-btn:hover{background:var(--panel);border-color:var(--line);color:var(--text)}
+.status-bar{height:34px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--dim);font-size:10px;flex-shrink:0}.status-bar .dot{width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 0 4px rgba(114,178,138,.08)}
+.chat{flex:1;overflow-y:auto;scroll-behavior:smooth}.chat-inner{max-width:900px;margin:0 auto;padding:48px 28px 150px}
+.chat::-webkit-scrollbar{width:8px}.chat::-webkit-scrollbar-thumb{background:var(--panel-3);border-radius:30px}.chat::-webkit-scrollbar-track{background:transparent}
+.welcome-card{max-width:760px;margin:50px auto 22px;text-align:center;background:transparent;border:0;padding:10px 0}.welcome-kicker{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.6px;margin-bottom:12px;text-transform:uppercase}.welcome-card h2{font-size:34px;line-height:1.22;letter-spacing:-1px;margin-bottom:13px;font-weight:700}.welcome-card p{font-size:14px;color:var(--muted);line-height:1.9;max-width:680px;margin:0 auto}.quick-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:22px}.quick-chip{padding:9px 13px;border:1px solid var(--line);background:var(--panel);border-radius:999px;color:var(--muted);cursor:pointer;font-size:12px;transition:.18s ease}.quick-chip:hover{color:var(--text);border-color:var(--line-strong);background:var(--panel-2);transform:translateY(-1px)}
+.msg-wrapper{display:flex;gap:12px;max-width:860px;margin:0 auto 30px;animation:msgIn .3s ease forwards}.msg-wrapper.user{flex-direction:row-reverse}.msg-wrapper.bot{flex-direction:row}.msg-avatar{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;margin-top:3px;font-size:13px;background:var(--panel-2);border:1px solid var(--line)}.msg-wrapper.bot .msg-avatar,.msg-wrapper.error .msg-avatar{background:linear-gradient(135deg,var(--accent),#9f4f37);color:#fff;border:0}.msg-wrapper.user .msg-avatar{background:var(--panel-3)}
+.msg-bubble{font-size:14.5px;line-height:1.85;word-break:break-word;max-width:min(760px,calc(100vw - 150px))}.msg-wrapper.bot .msg-bubble{padding-top:1px;color:var(--text)}.msg-wrapper.user .msg-bubble{background:var(--panel-2);border:1px solid var(--line);padding:12px 15px;border-radius:14px}.msg-bubble img{max-width:100%;max-height:340px;object-fit:cover;border-radius:12px;border:1px solid var(--line);display:block;margin-bottom:10px}.msg-time{font-size:9px;color:var(--dim);margin-top:6px}.msg-wrapper.user .msg-time{text-align:right}.msg-wrapper.error .msg-bubble{padding:11px 14px;border-radius:12px;background:rgba(239,107,107,.08);border:1px solid rgba(239,107,107,.18);color:var(--danger)}
+.typing-wrapper{display:flex;gap:12px;max-width:860px;margin:0 auto 24px}.typing-bubble{display:flex;align-items:center;gap:4px;padding:13px 14px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px}.typing-bubble span{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:typing 1.2s infinite}.typing-bubble span:nth-child(2){animation-delay:.12s}.typing-bubble span:nth-child(3){animation-delay:.24s}
+.composer-zone{position:absolute;left:0;right:0;bottom:0;padding:24px 24px 20px;background:linear-gradient(0deg,var(--bg) 66%,transparent);z-index:5}.composer{max-width:900px;margin:0 auto}.image-preview{display:none;align-items:center;gap:10px;margin-bottom:8px;padding:8px 10px;border:1px solid var(--line);background:var(--panel);border-radius:12px}.image-preview.active{display:flex}.image-preview img{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}.image-preview .label{flex:1;font-size:11px;color:var(--muted)}.image-preview .remove-btn{width:28px;height:28px;border-radius:8px;background:transparent;color:var(--dim);cursor:pointer}.image-preview .remove-btn:hover{background:var(--panel-2);color:var(--danger)}
+.input-bar{display:flex;align-items:flex-end;gap:7px;padding:8px;border:1px solid var(--line-strong);background:var(--panel);border-radius:18px;box-shadow:var(--shadow);transition:.18s ease}.input-bar:focus-within{border-color:rgba(217,119,87,.55);box-shadow:0 0 0 3px var(--accent-soft),var(--shadow)}.input-bar input[type="text"]{flex:1;min-width:0;height:44px;border:0;outline:0;background:transparent;color:var(--text);padding:0 8px;font-size:14px}.input-bar input[type="text"]::placeholder{color:var(--dim)}.input-actions{display:flex;align-items:center;gap:4px}.input-btn{width:38px;height:38px;border-radius:10px;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center}.input-btn:hover{background:var(--panel-2);color:var(--text)}.send-btn{width:40px;height:40px;border-radius:11px;background:var(--text);color:var(--bg);cursor:pointer;display:grid;place-items:center;font-size:16px;transition:.18s ease}.send-btn:hover:not(:disabled){background:var(--accent);color:#fff;transform:translateY(-1px)}.send-btn:disabled{opacity:.35;cursor:not-allowed}.input-hint{text-align:center;font-size:9px;color:var(--dim);margin-top:9px}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes typing{0%,70%,100%{transform:translateY(0);opacity:.35}35%{transform:translateY(-4px);opacity:1}}
+.service-card{max-width:820px;margin:0 auto 30px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel);box-shadow:0 10px 30px rgba(0,0,0,.12);animation:msgIn .3s ease forwards}
+.card-head{padding:14px 16px;font-weight:700;font-size:13.5px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.card-body{padding:16px}
+.card-body>p{font-size:13px;color:var(--muted);line-height:1.85;margin-bottom:12px}
+.leaflet-map{height:360px;width:100%;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--panel-2)}
+.map-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.map-btn{height:40px;padding:0 16px;border-radius:10px;cursor:pointer;font-weight:600;font-size:12.5px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);transition:.18s ease}
+.map-btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+.map-btn.primary:hover{background:var(--accent-2)}
+.map-btn.secondary:hover{background:var(--panel-3);border-color:var(--line-strong)}
+.result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 4px}
+.result-stat{padding:12px;border-radius:12px;background:var(--panel-2);border:1px solid var(--line)}
+.result-stat .stat-label{font-size:10.5px;color:var(--muted)}
+.result-stat .stat-value{font-size:18px;font-weight:700;margin-top:5px;color:var(--text)}
+.interpretation{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:13.5px;line-height:1.9;color:var(--text);white-space:pre-wrap}
+.interpretation strong{display:block;margin-bottom:8px;color:var(--accent);font-weight:700}
+.sat-map-img{width:100%;border-radius:12px;border:1px solid var(--line);margin-top:14px;display:block}
+.soil-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.soil-tag{padding:6px 12px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);font-size:11.5px;color:var(--muted)}
+@media(max-width:700px){.result-grid{grid-template-columns:repeat(2,1fr)}.leaflet-map{height:260px}}
+.mobile-sidebar-btn{display:none}
+@media(max-width:900px){.sidebar{width:230px}.chat-inner{padding-left:20px;padding-right:20px}.welcome-card h2{font-size:29px}}
+@media(max-width:700px){.sidebar{display:none}.mobile-sidebar-btn{display:grid}.topbar{padding:0 12px}.model-wrap{gap:7px}.live{display:none}.chat-inner{padding:28px 14px 145px}.welcome-card{margin-top:28px}.welcome-card h2{font-size:25px}.msg-wrapper{gap:9px;margin-bottom:24px}.msg-bubble{font-size:14px;max-width:calc(100vw - 74px)}.composer-zone{padding:12px 12px 12px}.input-bar{border-radius:15px}.input-hint{display:none}}
+
+/* === تسجيل الدخول / إنشاء حساب === */
+.overlay{position:fixed;inset:0;background:rgba(8,8,7,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9000;padding:16px}
+.overlay.hidden{display:none}
+.auth-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:var(--shadow);text-align:center}
+.auth-card .brand-mark{margin:0 auto 16px}
+.auth-card h2{font-size:20px;margin-bottom:6px}
+.auth-card .sub{color:var(--muted);font-size:12.5px;line-height:1.8;margin-bottom:20px}
+.auth-card input{width:100%;padding:12px 13px;border:1px solid var(--line-strong);background:var(--panel-2);color:var(--text);border-radius:10px;margin-bottom:10px;text-align:right}
+.auth-card input::placeholder{color:var(--dim)}
+.auth-card input:focus{outline:0;border-color:var(--accent)}
+.auth-btn{width:100%;height:44px;border-radius:11px;background:var(--accent);color:#fff;font-weight:700;font-size:14px;margin-top:4px;transition:.18s ease}
+.auth-btn:hover:not(:disabled){background:var(--accent-2)}
+.auth-btn:disabled{opacity:.55;cursor:not-allowed}
+.auth-error{min-height:16px;font-size:12px;margin-top:10px;color:var(--danger)}
+.auth-switch{margin-top:16px;font-size:12px;color:var(--muted)}
+.auth-switch a{color:var(--accent);cursor:pointer;font-weight:700}
+.sessions-card{width:100%;max-width:460px;max-height:78vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow)}
+.sessions-card h2{font-size:17px;margin-bottom:14px}
+
+/* === نافذة رسم الحقل (أقمار صناعية) === */
+.field-modal{position:fixed;inset:0;background:rgba(8,8,7,.78);backdrop-filter:blur(6px);z-index:9500;display:flex;align-items:center;justify-content:center;padding:14px}
+.field-modal.hidden{display:none}
+.field-card{width:100%;max-width:1000px;height:90vh;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+.field-top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.field-top h3{font-size:14.5px;font-weight:700;flex:0 0 auto}
+.field-search{display:flex;gap:6px;flex:1;min-width:210px}
+.field-search input{flex:1;height:38px;padding:0 11px;border:1px solid var(--line-strong);background:var(--panel-2);color:var(--text);border-radius:10px;font-size:13px}
+.field-search input:focus{outline:0;border-color:var(--accent)}
+.field-hint{font-size:11.5px;color:var(--muted);padding:9px 16px 0;line-height:1.8}
+#fieldMap{flex:1;width:100%;min-height:200px}
+.field-bottom{display:flex;align-items:center;gap:8px;padding:11px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+.field-info{flex:1;min-width:150px;font-size:12px;color:var(--muted)}
+/* جواب منظم بلا رموز */
+.msg-bubble .ln{margin:2px 0}
+.msg-bubble .hd{font-weight:700;margin:10px 0 4px;color:var(--accent)}
+.msg-bubble .li{padding-inline-start:12px}
+.followups{display:flex;flex-wrap:wrap;gap:8px;max-width:860px;margin:-14px auto 26px}
+.data-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+.data-table th,.data-table td{border:1px solid var(--line);padding:7px 9px;text-align:center;color:var(--text)}
+.data-table th{background:var(--panel-2);color:var(--muted);font-weight:600}
+.date-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:9px;margin-top:10px}
+.date-item{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel-2)}
+.date-item img{width:100%;height:92px;object-fit:cover;display:block}
+.date-item .lbl{font-size:10.5px;padding:5px;text-align:center;color:var(--muted)}
+@media(max-width:700px){.field-card{height:94vh}.field-top h3{width:100%}}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-top">
+      <div class="brand-mini"><div class="brand-mark"><img src="https://agro-synth.github.io/AgroSynth/1000007537.jpg" alt="AgroSynth"></div><span>AgroSynth</span></div>
+    </div>
+    <button class="new-chat" id="newChat"><span>＋</span><span>محادثة جديدة</span></button>
+    <div class="side-section">
+      <div class="side-title">AgroSynth</div>
+      <div class="side-item active"><span class="side-icon">◉</span><span>المساعد الفلاحي</span></div>
+      <div class="side-item"><span class="side-icon">⌁</span><span>تحليل النباتات</span></div>
+      <div class="side-item"><span class="side-icon">◌</span><span>الطقس والري</span></div>
+      <div class="side-item"><span class="side-icon">▦</span><span>بيانات الحقل</span></div>
+    </div>
+    <div class="side-section">
+      <div class="side-title">المحادثات السابقة</div>
+      <div class="sessions-list" id="sessionsList"><div class="side-empty">سجل الدخول باش تشوف المحادثات ديالك</div></div>
+    </div>
+    <div class="side-spacer"></div>
+    <div class="side-footer">
+      <div class="side-item" id="sideTheme"><span class="side-icon">☾</span><span>المظهر</span></div>
+      <div class="account">
+        <div class="avatar">👤</div>
+        <div style="flex:1;min-width:0"><strong id="userEmail">زائر</strong><small>الحساب المجاني</small></div>
+        <button class="logout-btn" id="logoutBtn" title="خروج">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="model-wrap">
+        <button class="icon-btn mobile-sidebar-btn" title="القائمة">☰</button>
+        <button class="model-btn" title="النموذج">AgroSynth AI <span class="chev">⌄</span></button>
+        <div class="live"><i></i><span>متصل</span></div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="themeToggle" title="تبديل الوضع">☾</button>
+        <button class="icon-btn" id="clearChat" title="مسح المحادثة">⌫</button>
+      </div>
+    </header>
+
+    <div class="status-bar"><span class="dot"></span><span>مساعد AgroSynth الفلاحي — متصل بـ فلاحي AI: أقمار صناعية، طقس، تربة</span></div>
+
+    <section class="chat" id="messages">
+      <div class="chat-inner"></div>
+    </section>
+
+    <div class="composer-zone">
+      <div class="composer">
+        <div class="image-preview" id="imagePreview">
+          <img id="previewImg" src="" alt="preview">
+          <div class="label">صورة جاهزة للتحليل</div>
+          <button class="remove-btn" id="removeImage">✕</button>
+        </div>
+        <div class="input-bar">
+          <input type="text" id="userInput" placeholder="اكتب سؤالك لـ AgroSynth..." autocomplete="off">
+          <div class="input-actions">
+            <button class="input-btn" id="attachBtn" title="إرفاق صورة">＋</button>
+            <button class="send-btn" id="sendBtn" title="إرسال">↑</button>
+          </div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" style="display:none">
+        <div class="input-hint">AgroSynth قد ترتكب أخطاء. تحقق دائماً من المعلومات المهمة.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- شاشة تسجيل الدخول / إنشاء حساب -->
+<div class="overlay hidden" id="authOverlay">
+  <div class="auth-card">
+    <div class="brand-mark"><img src="https://agro-synth.github.io/AgroSynth/1000007537.jpg" alt="AgroSynth"></div>
+    <h2 id="authTitle">تسجيل الدخول</h2>
+    <p class="sub" id="authSub">دخل بالبريد الإلكتروني وكلمة السر ديالك باش تبدا تهضر مع AgroSynth وتبقى المحادثات ديالك محفوظة.</p>
+    <input type="email" id="authEmail" placeholder="البريد الإلكتروني" autocomplete="email">
+    <input type="password" id="authPassword" placeholder="كلمة السر" autocomplete="current-password">
+    <button class="auth-btn" id="authSubmit">دخول</button>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-switch"><span id="authSwitchText">ماعندكش حساب؟</span> <a id="authSwitchLink">سجل حساب جديد</a></div>
+  </div>
+</div>
+
+<!-- نافذة المحادثات السابقة (نسخة موبايل / تفصيلية) -->
+<div class="overlay hidden" id="sessionsOverlay">
+  <div class="sessions-card">
+    <h2>المحادثات السابقة</h2>
+    <div id="sessionsListModal"></div>
+    <button class="auth-btn" id="closeSessionsBtn" style="margin-top:14px;background:var(--panel-2);color:var(--text)">إغلاق</button>
+  </div>
+</div>
+
+<!-- نافذة رسم حدود الحقل فوق صور الأقمار الصناعية -->
+<div class="field-modal hidden" id="fieldModal">
+  <div class="field-card">
+    <div class="field-top">
+      <h3 id="fieldTitle">🛰️ ارسم حدود ضيعتك</h3>
+      <div class="field-search">
+        <input id="fieldSearch" placeholder="اسم المدينة أو الدوار…" autocomplete="off">
+        <button class="map-btn secondary" id="fieldSearchBtn">بحث</button>
+        <button class="map-btn secondary" id="fieldLocate">📡 موقعي</button>
+      </div>
+      <button class="map-btn secondary" id="fieldClose">✕</button>
+    </div>
+    <p class="field-hint" id="fieldHint">زيد بالزووم حتى تبان الضيعة، ثم استعمل أداة الرسم فاليسار (مضلع ⬟ أو مستطيل ▭) وحدد الحدود.</p>
+    <div id="fieldMap"></div>
+    <div class="field-bottom">
+      <div class="field-info" id="fieldInfo">ماشي محدد بعد.</div>
+      <button class="map-btn secondary" id="fieldClear">مسح الرسم</button>
+      <button class="map-btn primary" id="fieldConfirm">تأكيد وتحليل</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// نفس مشروع Supabase اللي كيتحقق منو السيرفر (agrosynth-worker)
+const SUPABASE_URL = "https://fanzupstktgwuxswlhgl.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_oj8jCSuhLOO3gIUhLbde_w_9lulmc5t";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const WORKER_URL = 'https://agriboot.unfo-adminsiteweb.workers.dev/api/chat';
+const SESSIONS_URL = 'https://agriboot.unfo-adminsiteweb.workers.dev/api/sessions';
+const MESSAGES_URL = 'https://agriboot.unfo-adminsiteweb.workers.dev/api/messages';
+const GEOCODE_URL  = 'https://agriboot.unfo-adminsiteweb.workers.dev/api/geocode';
+
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const attachBtn = document.getElementById('attachBtn');
+const fileInput = document.getElementById('fileInput');
+const imagePreview = document.getElementById('imagePreview');
+const previewImg = document.getElementById('previewImg');
+const removeImageBtn = document.getElementById('removeImage');
+const themeToggle = document.getElementById('themeToggle');
+const clearChat = document.getElementById('clearChat');
+const newChat = document.getElementById('newChat');
+const sideTheme = document.getElementById('sideTheme');
+
+const authOverlay = document.getElementById('authOverlay');
+const authTitle = document.getElementById('authTitle');
+const authSub = document.getElementById('authSub');
+const authEmail = document.getElementById('authEmail');
+const authPassword = document.getElementById('authPassword');
+const authSubmit = document.getElementById('authSubmit');
+const authError = document.getElementById('authError');
+const authSwitchText = document.getElementById('authSwitchText');
+const authSwitchLink = document.getElementById('authSwitchLink');
+const userEmailEl = document.getElementById('userEmail');
+const logoutBtn = document.getElementById('logoutBtn');
+const sessionsListEl = document.getElementById('sessionsList');
+const sessionsOverlay = document.getElementById('sessionsOverlay');
+const sessionsListModal = document.getElementById('sessionsListModal');
+const closeSessionsBtn = document.getElementById('closeSessionsBtn');
+
+let conversationHistory = [];
+let pendingImageBase64 = null;
+let isDark = true;
+let authMode = 'login';
+let currentSessionId = null;
+
+// === Theme Toggle ===
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  themeToggle.textContent = isDark ? '☾' : '☀';
+}
+themeToggle.addEventListener('click', () => { isDark = !isDark; applyTheme(); });
+sideTheme.addEventListener('click', () => { isDark = !isDark; applyTheme(); });
+newChat.addEventListener('click', resetChat);
+clearChat.addEventListener('click', resetChat);
+
+function resetChat() {
+  messagesEl.innerHTML = '<div class="chat-inner"></div>';
+  conversationHistory = [];
+  currentSessionId = null;
+  currentGeometry = null;
+  currentPoint = null;
+  markActiveSession(null);
+  addWelcomeCard();
+}
+
+function addWelcomeCard() {
+  const card = document.createElement('div');
+  card.className = 'welcome-card';
+  card.innerHTML = `
+    <div class="welcome-kicker">AGROSYNTH • AGRICULTURE AI</div>
+    <h2>👋 أهلاً بيك فـ AgroSynth</h2>
+    <p>مساعدتك الفلاحية الذكية، مربوطة بأقمار Sentinel-2، الطقس الحقيقي، وخرائط التربة. سولني على الري، الطقس، أو بغيت تحليل بالأقمار الصناعية.</p>
+    <div class="quick-actions">
+      <button class="quick-chip" data-text="بغيت نحلل الضيعة ديالي بالأقمار الصناعية">🛰️ تحليل بالأقمار الصناعية</button>
+      <button class="quick-chip" data-text="شنو حالة الطقس ديال الضيعة ديالي؟">🌦️ طقس الضيعة</button>
+      <button class="quick-chip" data-text="بغيت نحلل التربة ديال الحقل ديالي">🧪 تحليل التربة</button>
+      <button class="quick-chip" data-text="كيفاش ندير الري بالتنقيط؟">💧 الري الذكي</button>
+    </div>
+  `;
+  const inner = messagesEl.querySelector('.chat-inner');
+  inner.appendChild(card);
+  bindQuickChips();
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function bindQuickChips() {
+  document.querySelectorAll('.quick-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const t = chip.dataset.text || '';
+      if (wantsFieldAnalysis(t) && !currentGeometry) {
+        addMessage(t, 'user');
+        conversationHistory.push({ role: 'user', content: t });
+        renderAnswer('رسم حدود ضيعتك فالخريطة، ونحللها ليك بآخر صورة متوفرة.');
+        openFieldModal('draw_field');
+        return;
+      }
+      inputEl.value = t;
+      inputEl.focus();
+    });
+  });
+}
+
+function getTimeString() {
+  const now = new Date();
+  return now.toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' });
+}
+
+function addMessage(text, type, imageDataUrl) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg-wrapper ' + type;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  if (type === 'user') { avatar.textContent = '👤'; } else { avatar.innerHTML = '<img src="https://agro-synth.github.io/AgroSynth/1000007537.jpg" alt="AgroSynth">'; }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+
+  if (imageDataUrl) {
+    const img = document.createElement('img');
+    img.src = imageDataUrl;
+    bubble.appendChild(img);
+  }
+  if (text) {
+    const p = document.createElement('div');
+    p.textContent = text;
+    bubble.appendChild(p);
+  }
+
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = getTimeString();
+  bubble.appendChild(time);
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(bubble);
+  messagesEl.querySelector('.chat-inner').appendChild(wrapper);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return wrapper;
+}
+
+function showTyping() {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'typing-wrapper';
+  wrapper.id = 'typingIndicator';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.innerHTML = '<img src="https://agro-synth.github.io/AgroSynth/1000007537.jpg" alt="AgroSynth">';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'typing-bubble';
+  bubble.innerHTML = '<span></span><span></span><span></span>';
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(bubble);
+  messagesEl.querySelector('.chat-inner').appendChild(wrapper);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+attachBtn.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    pendingImageBase64 = reader.result;
+    previewImg.src = pendingImageBase64;
+    imagePreview.classList.add('active');
+  };
+  reader.readAsDataURL(file);
+});
+
+removeImageBtn.addEventListener('click', () => {
+  pendingImageBase64 = null;
+  fileInput.value = '';
+  imagePreview.classList.remove('active');
+});
+
+// === Helpers ===
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function tileLayerUrl() {
+  return isDark
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+}
+
+function addCard(html) {
+  const div = document.createElement('div');
+  div.className = 'service-card';
+  div.innerHTML = html;
+  messagesEl.querySelector('.chat-inner').appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
+}
+
+// === نافذة رسم الحقل فوق صور الأقمار الصناعية ===
+
+let fMap = null, fItems = null, fMarker = null;
+let drawnGeometry = null, pickedPoint = null, fieldMode = 'draw_field';
+let currentGeometry = null, currentPoint = null;
+
+const fieldModal = document.getElementById('fieldModal');
+const fieldTitle = document.getElementById('fieldTitle');
+const fieldHint = document.getElementById('fieldHint');
+const fieldInfo = document.getElementById('fieldInfo');
+const fieldSearch = document.getElementById('fieldSearch');
+const fieldSearchBtn = document.getElementById('fieldSearchBtn');
+const fieldLocate = document.getElementById('fieldLocate');
+const fieldClose = document.getElementById('fieldClose');
+const fieldClear = document.getElementById('fieldClear');
+const fieldConfirm = document.getElementById('fieldConfirm');
+
+function areaHaOf(geom) {
+  const pts = geom.coordinates[0];
+  if (pts.length < 4) return 0;
+  const lat0 = Number(pts[0][1]);
+  const mLat = 111320, mLng = 111320 * Math.cos(lat0 * Math.PI / 180);
+  let a = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    a += (pts[i][0] * mLng) * (pts[i + 1][1] * mLat) - (pts[i + 1][0] * mLng) * (pts[i][1] * mLat);
+  }
+  return Math.abs(a) / 2 / 10000;
+}
+
+function centroidOf(geom) {
+  const pts = geom.coordinates[0];
+  const n = pts.length - 1;
+  let sx = 0, sy = 0;
+  for (let i = 0; i < n; i++) { sx += Number(pts[i][0]); sy += Number(pts[i][1]); }
+  return { lat: sy / n, lng: sx / n };
+}
+
+function initFieldMap() {
+  fMap = L.map('fieldMap', { zoomControl: true }).setView([31.7917, -7.0926], 6);
+
+  const imagery = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { maxZoom: 19, attribution: 'Imagery © Esri, Maxar, Earthstar Geographics' }
+  ).addTo(fMap);
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+    { maxZoom: 19, opacity: .9 }
+  ).addTo(fMap);
+  const plain = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '© OpenStreetMap, © CARTO' });
+  L.control.layers({ 'أقمار صناعية': imagery, 'خريطة عادية': plain }, null, { position: 'topright' }).addTo(fMap);
+
+  fItems = new L.FeatureGroup();
+  fMap.addLayer(fItems);
+  fMap.addControl(new L.Control.Draw({
+    position: 'topleft',
+    draw: { polygon: { allowIntersection: false, showArea: false }, rectangle: true, polyline: false, circle: false, marker: false, circlemarker: false },
+    edit: { featureGroup: fItems }
+  }));
+
+  function setGeom(layer) {
+    drawnGeometry = layer.toGeoJSON().geometry;
+    fieldInfo.textContent = 'المساحة: ' + areaHaOf(drawnGeometry).toFixed(2) + ' هكتار · النقاط: ' + (drawnGeometry.coordinates[0].length - 1);
+  }
+
+  fMap.on(L.Draw.Event.CREATED, (e) => { fItems.clearLayers(); fItems.addLayer(e.layer); setGeom(e.layer); });
+  fMap.on(L.Draw.Event.EDITED, () => { const ls = fItems.getLayers(); if (ls.length) setGeom(ls[0]); });
+  fMap.on(L.Draw.Event.DELETED, () => { drawnGeometry = null; fieldInfo.textContent = 'ماشي محدد بعد.'; });
+
+  fMap.on('click', (e) => {
+    if (fieldMode !== 'pick_location') return;
+    pickedPoint = { lat: e.latlng.lat, lng: e.latlng.lng };
+    if (fMarker) fMarker.remove();
+    fMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(fMap);
+    fieldInfo.textContent = 'الموقع: ' + pickedPoint.lat.toFixed(5) + ', ' + pickedPoint.lng.toFixed(5);
+  });
+}
+
+function openFieldModal(mode) {
+  fieldMode = mode === 'pick_location' ? 'pick_location' : 'draw_field';
+  const isPoint = fieldMode === 'pick_location';
+  fieldTitle.textContent = isPoint ? '📍 حدد موقع الضيعة' : '🛰️ ارسم حدود ضيعتك';
+  fieldHint.textContent = isPoint
+    ? 'زيد بالزووم وضغط على الخريطة باش تحدد نقطة الضيعة، ثم ضغط تأكيد.'
+    : 'زيد بالزووم حتى تبان الضيعة، ثم استعمل أداة الرسم فاليسار (مضلع ⬟ أو مستطيل ▭)، وفاللخر ضغط تأكيد وتحليل.';
+  fieldInfo.textContent = 'ماشي محدد بعد.';
+  drawnGeometry = null; pickedPoint = null;
+  fieldModal.classList.remove('hidden');
+  if (!fMap) initFieldMap();
+  if (fItems) fItems.clearLayers();
+  if (fMarker) { fMarker.remove(); fMarker = null; }
+  setTimeout(() => fMap.invalidateSize(), 160);
+}
+
+function closeFieldModal() { fieldModal.classList.add('hidden'); }
+
+fieldClose.addEventListener('click', closeFieldModal);
+fieldModal.addEventListener('click', (e) => { if (e.target === fieldModal) closeFieldModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !fieldModal.classList.contains('hidden')) closeFieldModal(); });
+
+fieldClear.addEventListener('click', () => {
+  if (fItems) fItems.clearLayers();
+  if (fMarker) { fMarker.remove(); fMarker = null; }
+  drawnGeometry = null; pickedPoint = null;
+  fieldInfo.textContent = 'ماشي محدد بعد.';
+});
+
+fieldConfirm.addEventListener('click', () => {
+  if (drawnGeometry) {
+    currentGeometry = drawnGeometry;
+    currentPoint = centroidOf(drawnGeometry);
+    closeFieldModal();
+    sendRequest('هذه هي حدود ضيعتي، حللها بالأقمار الصناعية وعطيني آخر صورة متوفرة.', { geometry: currentGeometry });
+    return;
+  }
+  if (pickedPoint) {
+    currentPoint = pickedPoint;
+    closeFieldModal();
+    sendRequest('استعمل هاد الموقع', { lat: pickedPoint.lat, lng: pickedPoint.lng });
+    return;
+  }
+  alert(fieldMode === 'pick_location' ? 'ضغط على الخريطة باش تحدد الموقع.' : 'رسم حدود الضيعة أولاً بأداة الرسم فاليسار.');
+});
+
+fieldLocate.addEventListener('click', () => {
+  if (!navigator.geolocation) { alert('المتصفح ما كيدعمش تحديد الموقع.'); return; }
+  fieldInfo.textContent = 'كنقلبو على موقعك…';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => { fMap.setView([pos.coords.latitude, pos.coords.longitude], 17); fieldInfo.textContent = 'ها موقعك — دابا رسم حدود الضيعة.'; },
+    () => { fieldInfo.textContent = 'تعذر تحديد موقعك، قلب بالاسم.'; },
+    { enableHighAccuracy: true, timeout: 9000 }
+  );
+});
+
+async function runGeoSearch() {
+  const q = fieldSearch.value.trim();
+  if (!q) return;
+  fieldSearchBtn.disabled = true;
+  try {
+    const res = await fetch(GEOCODE_URL + '?q=' + encodeURIComponent(q));
+    const data = await res.json();
+    const list = (data && data.results) || [];
+    if (!list.length) { fieldInfo.textContent = 'ملقيناش هاد المكان، جرب اسم آخر.'; return; }
+    fMap.setView([list[0].lat, list[0].lng], 15);
+    fieldInfo.textContent = 'الخريطة فـ ' + list[0].name + ' — دابا رسم حدود الضيعة.';
+  } catch (e) {
+    fieldInfo.textContent = 'تعذر البحث دابا، حرك الخريطة يدوياً.';
+  } finally {
+    fieldSearchBtn.disabled = false;
+  }
+}
+fieldSearchBtn.addEventListener('click', runGeoSearch);
+fieldSearch.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); runGeoSearch(); } });
+
+// كشف نية تحليل الضيعة محلياً باش النافذة تطلع مباشرة
+function wantsFieldAnalysis(text) {
+  const t = String(text || '');
+  const act = /(حلل|تحليل|نحلل|شوف|فحص|قيس|analy|scan|diagnos)/i.test(t);
+  const obj = /(ضيع|حقل|أرض|الارض|الأرض|محصول|زرع|غرس|قمر|أقمار|اقمار|satellite|ndvi|field|farm|parcelle|تربة|التربة)/i.test(t);
+  return act && obj;
+}
+
+// === Result renderers (من trace ديال الوكيل الجديد) ===
+
+const SOIL_LABELS = { phh2o: 'الحموضة pH', clay: 'الطين %', sand: 'الرمل %', silt: 'الغرين %', soc: 'الكربون العضوي', cec: 'CEC', nitrogen: 'النيتروجين' };
+
+function weatherTable(daily) {
+  const rows = (daily || []).slice(0, 7).map((d) =>
+    '<tr><td>' + escapeHtml(String(d.date || '').slice(5)) + '</td><td>' + (d.tmax ?? '-') + '°</td><td>' + (d.tmin ?? '-') + '°</td><td>' + (d.precip_mm ?? '-') + '</td><td>' + (d.et0_mm ?? '-') + '</td></tr>'
+  ).join('');
+  return '<table class="data-table"><tr><th>اليوم</th><th>عظمى</th><th>صغرى</th><th>مطر mm</th><th>ET₀ mm</th></tr>' + rows + '</table>';
+}
+
+function soilTable(soil) {
+  return '<table class="data-table"><tr><th>الخاصية</th><th>القيمة</th></tr>' +
+    Object.keys(soil).map((k) => '<tr><td>' + escapeHtml(SOIL_LABELS[k] || k) + '</td><td><strong>' + escapeHtml(String(soil[k].value)) + '</strong> ' + escapeHtml(String(soil[k].unit || '')) + '</td></tr>').join('') +
+    '</table>';
+}
+
+function renderWeatherCard(r) {
+  addCard('<div class="card-head">🌦️ الطقس — ' + escapeHtml((r.location && r.location.place) || 'الموقع المحدد') + '</div>' +
+    '<div class="card-body">' + weatherTable(r.daily) + '</div>');
+}
+
+function renderIrrigationCard(r) {
+  const rows = (r.plan || []).map((x, i) => {
+    const date = r.dates && r.dates[i] ? String(r.dates[i]).slice(5) : '+' + x.day_offset;
+    return '<tr><td>' + escapeHtml(date) + '</td><td>' + x.et0_mm + '</td><td><strong>' + x.gross_mm + '</strong></td><td><strong>' + x.m3_per_ha + '</strong></td></tr>';
+  }).join('');
+  addCard('<div class="card-head">💧 خطة السقي — ' + escapeHtml((r.crop && (r.crop.darija || r.crop.en)) || '') + '</div><div class="card-body">' +
+    '<div class="result-grid">' +
+    '<div class="result-stat"><div class="stat-label">Kc</div><div class="stat-value">' + r.kc + '</div></div>' +
+    '<div class="result-stat"><div class="stat-label">متوسط ET₀</div><div class="stat-value">' + r.avg_et0_mm + '</div></div>' +
+    '<div class="result-stat"><div class="stat-label">متوسط الحاجة mm</div><div class="stat-value">' + r.avg_gross_mm + '</div></div>' +
+    '<div class="result-stat"><div class="stat-label">م³/هكتار/يوم</div><div class="stat-value">' + r.avg_m3_per_ha + '</div></div></div>' +
+    '<table class="data-table"><tr><th>اليوم</th><th>ET₀</th><th>الحاجة mm</th><th>م³/ha</th></tr>' + rows + '</table></div>');
+}
+
+function renderSoilCard(r) {
+  addCard('<div class="card-head">🧪 تحليل التربة</div><div class="card-body">' + soilTable(r.soil) +
+    '<p style="margin-top:10px">' + escapeHtml(r.note || '') + '</p></div>');
+}
+
+function renderClimateCard(r) {
+  const sum = r.summary || {};
+  addCard('<div class="card-head">🌍 ملخص مناخي — آخر 30 يوم</div><div class="card-body"><table class="data-table"><tr><th>المؤشر</th><th>المتوسط</th></tr>' +
+    Object.keys(sum).map((k) => '<tr><td>' + escapeHtml(k) + '</td><td>' + escapeHtml(String(sum[k].avg)) + '</td></tr>').join('') + '</table></div>');
+}
+
+function renderSatelliteCard(r) {
+  let body;
+  if (r.ndvi && r.ndvi.available) {
+    body = '<div class="result-grid">' +
+      '<div class="result-stat"><div class="stat-label">NDVI المتوسط</div><div class="stat-value">' + r.ndvi.overallMean + '</div></div>' +
+      '<div class="result-stat"><div class="stat-label">NDMI</div><div class="stat-value">' + (r.ndmi && r.ndmi.available ? r.ndmi.overallMean : '-') + '</div></div>' +
+      '<div class="result-stat"><div class="stat-label">المساحة</div><div class="stat-value">' + (r.area_ha ?? '-') + ' ha</div></div>' +
+      '<div class="result-stat"><div class="stat-label">عدد البكسلات</div><div class="stat-value">' + r.ndvi.samples + '</div></div></div>';
+  } else {
+    body = '<p>⚠️ ' + escapeHtml((r.ndvi && r.ndvi.reason) || 'بيانات غير كافية — غالباً بسبب الغيوم.') + '</p>';
+  }
+
+  let imgs = '';
+  if (r.latest_image) {
+    imgs += '<p style="margin-top:12px">🛰️ آخر صورة متوفرة بتاريخ <strong>' + escapeHtml(r.latest_image.date) + '</strong> (ألوان طبيعية):</p>';
+    if (r.latest_image.true_color_url) imgs += '<img class="sat-map-img" loading="lazy" src="' + escapeHtml(r.latest_image.true_color_url) + '" alt="صورة القمر الصناعي">';
+    if (r.latest_image.ndvi_url) {
+      imgs += '<p style="margin-top:12px">🌿 نفس التاريخ بمؤشر NDVI:</p><img class="sat-map-img" loading="lazy" src="' + escapeHtml(r.latest_image.ndvi_url) + '" alt="NDVI">';
+    }
+  } else if (r.map_url) {
+    imgs += '<img class="sat-map-img" src="' + escapeHtml(r.map_url) + '" alt="NDVI">';
+  }
+
+  let gallery = '';
+  if (Array.isArray(r.per_date_images) && r.per_date_images.length > 1) {
+    gallery = '<p style="margin-top:12px">📅 التواريخ الأخرى المتوفرة:</p><div class="date-gallery">' +
+      r.per_date_images.slice(-8).map((d) =>
+        '<div class="date-item">' + (d.true_color_url ? '<img loading="lazy" src="' + escapeHtml(d.true_color_url) + '">' : '') +
+        '<div class="lbl">' + escapeHtml(String(d.date).slice(0, 10)) + ' · NDVI ' + Number(d.ndvi_mean).toFixed(2) + '</div></div>'
+      ).join('') + '</div>';
+  }
+
+  let extra = '';
+  if (r.weather && r.weather.daily) extra += '<p style="margin-top:12px">🌦️ الطقس على نفس الحقل:</p>' + weatherTable(r.weather.daily);
+  if (r.soil && !r.soil.error) extra += '<p style="margin-top:12px">🧪 التربة (منها الحموضة pH):</p>' + soilTable(r.soil);
+  if (r.climate && !r.climate.error) {
+    extra += '<p style="margin-top:12px">🌍 ملخص مناخي 30 يوم:</p><table class="data-table"><tr><th>المؤشر</th><th>المتوسط</th></tr>' +
+      Object.keys(r.climate).map((k) => '<tr><td>' + escapeHtml(k) + '</td><td>' + escapeHtml(String(r.climate[k].avg)) + '</td></tr>').join('') + '</table>';
+  }
+
+  addCard('<div class="card-head">🛰️ تحليل الحقل — Sentinel-2 L2A</div><div class="card-body">' + body + imgs + gallery + extra +
+    '<p style="margin-top:12px">' + escapeHtml(r.note || '') + '</p></div>');
+}
+
+function renderToolResult(t) {
+  const r = t.result;
+  if (!r || r.ok === false || r.needs_action) return;
+  if (t.tool === 'get_weather' && r.daily) renderWeatherCard(r);
+  if (t.tool === 'get_irrigation_plan' && r.plan) renderIrrigationCard(r);
+  if (t.tool === 'get_soil_analysis' && r.soil) renderSoilCard(r);
+  if (t.tool === 'get_climate_history' && r.summary) renderClimateCard(r);
+  if (t.tool === 'analyze_satellite_field' && r.ndvi) renderSatelliteCard(r);
+}
+
+// === جواب منظم بلا نجوم ولا رموز ماركداون ===
+
+function renderAnswer(text) {
+  const clean = String(text || '')
+    .replace(/\*\*/g, '').replace(/\*/g, '')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/^\s*[-•]\s+/gm, '– ')
+    .replace(/`/g, '')
+    .trim();
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg-wrapper bot';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.innerHTML = '<img src="https://agro-synth.github.io/AgroSynth/1000007537.jpg" alt="AgroSynth">';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+
+  clean.split(/\n+/).forEach((line) => {
+    const l = line.trim();
+    if (!l) return;
+    const el = document.createElement('div');
+    if (/:$/.test(l) && l.length < 60) el.className = 'ln hd';
+    else if (/^(\d+[\.\)]|–)/.test(l)) el.className = 'ln li';
+    else el.className = 'ln';
+    el.textContent = l;
+    bubble.appendChild(el);
+  });
+
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = getTimeString();
+  bubble.appendChild(time);
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(bubble);
+  messagesEl.querySelector('.chat-inner').appendChild(wrapper);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function addFollowups(items) {
+  const box = document.createElement('div');
+  box.className = 'followups';
+  items.forEach((it) => {
+    const b = document.createElement('button');
+    b.className = 'quick-chip';
+    b.textContent = it.label;
+    b.addEventListener('click', () => sendRequest(it.prompt));
+    box.appendChild(b);
+  });
+  messagesEl.querySelector('.chat-inner').appendChild(box);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+// === Core request / response handling ===
+
+function handleResponse(data) {
+  if (data.session_id) currentSessionId = data.session_id;
+
+  if (data.answer) {
+    renderAnswer(data.answer);
+    conversationHistory.push({ role: 'assistant', content: data.answer });
+  }
+
+  (data.trace || []).forEach(renderToolResult);
+
+  const quick = (data.trace || []).find((t) => t.tool === 'analyze_satellite_field' && t.result && t.result.ok && t.result.mode === 'quick');
+  if (quick) {
+    addFollowups([
+      { label: '🌦️ زيد الطقس', prompt: 'زيدني الطقس ديال 7 أيام لنفس الحقل' },
+      { label: '🧪 التربة والحموضة', prompt: 'عطيني نوع التربة والحموضة pH لنفس الحقل' },
+      { label: '🌍 المناخ 30 يوم', prompt: 'عطيني الملخص المناخي ديال آخر 30 يوم لنفس الحقل' },
+      { label: '💧 خطة السقي', prompt: 'حسب ليا خطة السقي لنفس الحقل' },
+      { label: '🧾 تحليل شامل', prompt: 'دير تحليل شامل mode full لنفس الحقل: صورة + مؤشرات + طقس + تربة + مناخ' }
+    ]);
+  }
+
+  if (data.ui_action === 'draw_field' || data.ui_action === 'pick_location') {
+    openFieldModal(data.ui_action);
+    return;
+  }
+
+  if (!data.answer && !(data.trace || []).length) {
+    addMessage('ما وصلنيش جواب واضح، جرب صيغة أخرى.', 'bot');
+  }
+}
+
+async function getAccessToken() {
+  const s = await supabase.auth.getSession();
+  return s.data.session ? s.data.session.access_token : null;
+}
+
+async function sendRequest(text, extra = {}, imageToSend = null) {
+  const token = await getAccessToken();
+  if (!token) { openAuth('login'); return; }
+
+  // كنحفظو الحقل/الموقع ونعاودو نصيفطوه مع أسئلة المتابعة
+  if (extra.geometry) { currentGeometry = extra.geometry; currentPoint = centroidOf(extra.geometry); }
+  if (extra.lat != null && extra.lng != null) currentPoint = { lat: extra.lat, lng: extra.lng };
+
+  const payloadExtra = {};
+  if (extra.geometry || currentGeometry) payloadExtra.geometry = extra.geometry || currentGeometry;
+  const plat = extra.lat != null ? extra.lat : (currentPoint ? currentPoint.lat : null);
+  const plng = extra.lng != null ? extra.lng : (currentPoint ? currentPoint.lng : null);
+  if (plat != null && plng != null) { payloadExtra.lat = plat; payloadExtra.lng = plng; }
+
+  addMessage(text, 'user', imageToSend);
+  if (imageToSend) {
+    addMessage('⚠️ تحليل الصور مباشرة ماشي متوفر حالياً فهاد السيرفر، كنبعتو غير النص المرفق.', 'error');
+  }
+  conversationHistory.push({ role: 'user', content: text });
+
+  sendBtn.disabled = true;
+  showTyping();
+
+  try {
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({
+        message: text,
+        messages: conversationHistory.slice(-8),
+        session_id: currentSessionId,
+        ...payloadExtra
+      })
+    });
+
+    if (response.status === 401) {
+      hideTyping();
+      openAuth('login');
+      sendBtn.disabled = false;
+      return;
+    }
+
+    const data = await response.json().catch(() => ({}));
+    hideTyping();
+
+    if (response.status === 429) {
+      addMessage('⚠️ وصلتي للحد ديال الطلبات. تسنى 60 ثانية وعاود — الإرسال غادي يتفعل بوحدو.', 'error');
+      sendBtn.disabled = true;
+      let left = 60;
+      const tick = setInterval(() => {
+        left--;
+        sendBtn.title = 'تسنى ' + left + ' ثانية';
+        if (left <= 0) { clearInterval(tick); sendBtn.disabled = false; sendBtn.title = 'إرسال'; }
+      }, 1000);
+      return;
+    }
+
+    if (!response.ok || data.success === false) {
+      const msg = data?.error || ('خطأ فالسيرفر (' + response.status + ')');
+      addMessage('⚠️ ' + msg + (data?.details ? ' — التفاصيل: ' + data.details : ''), 'error');
+      sendBtn.disabled = false;
+      return;
+    }
+
+    handleResponse(data);
+    refreshSessions();
+
+  } catch (err) {
+    hideTyping();
+    addMessage('⚠️ خطأ فالاتصال: ' + err.message, 'error');
+  }
+
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
+
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  const imageToSend = pendingImageBase64;
+
+  if (!text && !imageToSend) return;
+
+  inputEl.value = '';
+  pendingImageBase64 = null;
+  fileInput.value = '';
+  imagePreview.classList.remove('active');
+
+  const finalText = text || 'شنو هاد المرض فهاد النبتة؟';
+
+  // إلا طلب تحليل الضيعة وماعندناش الحدود ديالها → نافذة الخريطة كتطلع مباشرة
+  if (!imageToSend && wantsFieldAnalysis(finalText) && !currentGeometry) {
+    addMessage(finalText, 'user');
+    conversationHistory.push({ role: 'user', content: finalText });
+    renderAnswer('باش نحلل ضيعتك:\n1. حددها فالخريطة اللي طلعات (صور أقمار صناعية).\n2. زيد بالزووم وارسم الحدود.\n3. ضغط تأكيد وتحليل ونجيب ليك آخر صورة والمؤشرات.');
+    openFieldModal('draw_field');
+    return;
+  }
+
+  await sendRequest(finalText, {}, imageToSend);
+}
+
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+// ---------------------------------------------------------------------------
+// المصادقة (Supabase Auth)
+// ---------------------------------------------------------------------------
+
+function openAuth(mode) {
+  setAuthMode(mode);
+  authOverlay.classList.remove('hidden');
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  authError.textContent = '';
+  authError.style.color = 'var(--danger)';
+  if (mode === 'signup') {
+    authTitle.textContent = 'إنشاء حساب جديد';
+    authSub.textContent = 'خلق حساب باش تبدا تهضر مع AgroSynth وتبقى المحادثات ديالك محفوظة.';
+    authSubmit.textContent = 'إنشاء الحساب';
+    authSwitchText.textContent = 'عندك حساب من قبل؟';
+    authSwitchLink.textContent = 'سجل الدخول';
+  } else {
+    authTitle.textContent = 'تسجيل الدخول';
+    authSub.textContent = 'دخل بالبريد الإلكتروني وكلمة السر ديالك باش تبدا تهضر مع AgroSynth وتبقى المحادثات ديالك محفوظة.';
+    authSubmit.textContent = 'دخول';
+    authSwitchText.textContent = 'ماعندكش حساب؟';
+    authSwitchLink.textContent = 'سجل حساب جديد';
+  }
+}
+
+authSwitchLink.onclick = () => setAuthMode(authMode === 'login' ? 'signup' : 'login');
+
+authSubmit.onclick = async () => {
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+  if (!email || !password) { authError.textContent = 'خاصك تعمر البريد وكلمة السر.'; return; }
+  authSubmit.disabled = true;
+  authError.textContent = '';
+  try {
+    const res = authMode === 'signup'
+      ? await supabase.auth.signUp({ email, password })
+      : await supabase.auth.signInWithPassword({ email, password });
+    if (res.error) throw res.error;
+    if (authMode === 'signup' && !res.data.session) {
+      authError.style.color = 'var(--green)';
+      authError.textContent = 'تم إنشاء الحساب! تحقق من بريدك الإلكتروني لتأكيد الحساب، ثم سجل الدخول.';
+      setAuthMode('login');
+    } else {
+      onAuthenticated();
+    }
+  } catch (e) {
+    authError.style.color = 'var(--danger)';
+    authError.textContent = e.message || 'تعذر تسجيل الدخول.';
+  } finally {
+    authSubmit.disabled = false;
+  }
+};
+
+logoutBtn.onclick = async () => {
+  await supabase.auth.signOut();
+  location.reload();
+};
+
+function onAuthenticated() {
+  authOverlay.classList.add('hidden');
+  authEmail.value = '';
+  authPassword.value = '';
+  supabase.auth.getUser().then((r) => {
+    if (r.data && r.data.user) userEmailEl.textContent = r.data.user.email || 'مستخدم';
+  });
+  if (!messagesEl.querySelector('.msg-wrapper, .service-card')) addWelcomeCard();
+  refreshSessions();
+}
+
+supabase.auth.getSession().then((r) => {
+  if (r.data.session) { onAuthenticated(); } else { openAuth('login'); }
+});
+
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') location.reload();
+});
+
+// ---------------------------------------------------------------------------
+// المحادثات السابقة
+// ---------------------------------------------------------------------------
+
+function markActiveSession(id) {
+  sessionsListEl.querySelectorAll('.session-row').forEach((row) => {
+    row.classList.toggle('active', row.dataset.id === id);
+  });
+}
+
+async function refreshSessions() {
+  const token = await getAccessToken();
+  if (!token) return;
+  try {
+    const res = await fetch(SESSIONS_URL, { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'خطأ');
+    if (!data.sessions.length) {
+      sessionsListEl.innerHTML = '<div class="side-empty">ماكاين حتى محادثة سابقة</div>';
+      return;
+    }
+    sessionsListEl.innerHTML = '';
+    data.sessions.forEach((s) => {
+      const row = document.createElement('div');
+      row.className = 'session-row';
+      row.dataset.id = s.id;
+      row.textContent = s.title || 'محادثة بلا عنوان';
+      row.title = new Date(s.updated_at).toLocaleString('ar-MA');
+      row.onclick = () => loadSession(s.id);
+      sessionsListEl.appendChild(row);
+    });
+    markActiveSession(currentSessionId);
+  } catch (e) {
+    sessionsListEl.innerHTML = '<div class="side-empty">تعذر تحميل المحادثات</div>';
+  }
+}
+
+async function loadSession(sessionId) {
+  const token = await getAccessToken();
+  if (!token) { openAuth('login'); return; }
+  try {
+    const res = await fetch(MESSAGES_URL + '?session_id=' + encodeURIComponent(sessionId), { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'خطأ');
+    messagesEl.innerHTML = '<div class="chat-inner"></div>';
+    conversationHistory = [];
+    data.messages.forEach((m) => {
+      if (m.role === 'user') addMessage(m.content, 'user');
+      else renderAnswer(m.content);
+      conversationHistory.push({ role: m.role, content: m.content });
+    });
+    currentSessionId = sessionId;
+    markActiveSession(sessionId);
+    sessionsOverlay.classList.add('hidden');
+  } catch (e) {
+    addMessage('⚠️ تعذر تحميل المحادثة: ' + e.message, 'error');
+  }
+}
+
+closeSessionsBtn.onclick = () => sessionsOverlay.classList.add('hidden');
+
+// Auto-focus input on load
+inputEl.focus();
+</script>
+
+
+</body></html>
