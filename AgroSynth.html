@@ -1,0 +1,1662 @@
+<html lang="fr" dir="ltr" data-theme="dark"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AgroSynth — الوكيل الفلاحي الذكي</title>
+<link rel="icon" href="https://agro-synth.github.io/AgroSynth/1000007537.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Noto+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+<style>
+:root{
+  --bg:#101010; --panel:#171717; --panel-2:#1d1d1b; --panel-3:#232321;
+  --line:rgba(255,255,255,.085); --line-strong:rgba(255,255,255,.14);
+  --text:#f4f1eb; --muted:#a5a29b; --dim:#72716c;
+  --accent:#d97757; --accent-2:#e58b6c; --accent-soft:rgba(217,119,87,.12);
+  --green:#72b28a; --danger:#ef6b6b;
+  --shadow:0 20px 70px rgba(0,0,0,.35); --radius:14px;
+}
+[data-theme="light"]{
+  --bg:#f7f7f5; --panel:#ffffff; --panel-2:#f1f0ec; --panel-3:#e9e8e3;
+  --line:rgba(0,0,0,.08); --line-strong:rgba(0,0,0,.14);
+  --text:#1a1917; --muted:#66645f; --dim:#96938c;
+  --accent:#c45f3d; --accent-2:#d26f4d; --accent-soft:rgba(196,95,61,.10);
+  --green:#4f8b68; --danger:#c74747;
+  --shadow:0 20px 60px rgba(35,31,26,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0} html,body{width:100%;height:100%}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans Arabic','Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+button,input{font:inherit}
+button{border:0;cursor:pointer}
+.app-shell{height:100%;display:flex;direction:rtl;background:var(--bg)}
+.sidebar{width:272px;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;padding:14px 12px;gap:10px;flex-shrink:0}
+.side-top{display:flex;align-items:center;justify-content:space-between;padding:6px 4px 12px}
+.brand-mini{display:flex;align-items:center;gap:10px;font-weight:700}
+.brand-mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#9f4f37);display:grid;place-items:center;color:#fff;font-size:14px;font-weight:800;box-shadow:0 8px 24px rgba(217,119,87,.22);overflow:hidden}
+.brand-mark img{width:100%;height:100%;object-fit:cover}
+.msg-wrapper.bot .msg-avatar img,.msg-wrapper.error .msg-avatar img,.typing-wrapper .msg-avatar img{width:100%;height:100%;object-fit:cover;border-radius:9px}
+.brand-mini span{font-size:15px}.new-chat{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);border-radius:12px;cursor:pointer;transition:.18s ease;font-weight:600}
+.new-chat:hover{background:var(--panel-3);border-color:var(--line-strong);transform:translateY(-1px)}
+.side-section{padding:8px 5px 0}.side-title{font-size:11px;color:var(--dim);padding:0 8px 8px;font-weight:700;letter-spacing:.2px}
+.side-item{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;color:var(--muted);font-size:13px;cursor:pointer;transition:.18s ease}
+.side-item:hover{background:var(--panel-2);color:var(--text)} .side-item.active{background:var(--accent-soft);color:var(--text)} .side-icon{width:22px;text-align:center;display:inline-flex;align-items:center;justify-content:center}
+.side-icon svg{width:16px;height:16px}
+.side-spacer{flex:1}.side-footer{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:4px}
+.account{display:flex;align-items:center;gap:10px;padding:8px 10px}.avatar{width:30px;height:30px;border-radius:50%;background:var(--panel-3);display:grid;place-items:center;font-size:12px;flex-shrink:0}.account strong{font-size:12px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.account small{font-size:10px;color:var(--dim);display:block;margin-top:1px}
+.logout-btn{background:transparent;color:var(--muted);width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex-shrink:0}.logout-btn:hover{background:var(--panel-3);color:var(--danger)}
+.sessions-list{max-height:180px;overflow-y:auto;display:grid;gap:2px}
+.sessions-list::-webkit-scrollbar{width:6px}.sessions-list::-webkit-scrollbar-thumb{background:var(--panel-3);border-radius:30px}
+.session-row{display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:9px;font-size:12px;color:var(--muted);cursor:pointer}
+.session-row:hover{background:var(--panel-2);color:var(--text)}
+.session-row:hover .session-actions{opacity:1;pointer-events:auto}
+.session-row.active{background:var(--accent-soft);color:var(--text)}
+.session-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.session-actions{display:flex;align-items:center;gap:2px;opacity:0;pointer-events:none;transition:opacity .15s ease;flex-shrink:0}
+.session-action-btn{width:24px;height:24px;border-radius:6px;background:transparent;color:var(--dim);display:grid;place-items:center;flex-shrink:0}
+.session-action-btn:hover{background:var(--panel-3);color:var(--text)}
+.session-action-btn.danger:hover{color:var(--danger)}
+.session-action-btn svg{width:13px;height:13px}
+@media(max-width:700px){.session-actions{opacity:1;pointer-events:auto}}
+.side-empty{font-size:11px;color:var(--dim);padding:6px 10px}
+.main{min-width:0;flex:1;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+.topbar{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(14px);z-index:4}
+.model-wrap{display:flex;align-items:center;gap:10px}.model-btn{height:38px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;font-size:13px}.chev{font-size:10px;color:var(--dim)}
+.live{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted)}.live i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(114,178,138,.10)}
+.top-actions{display:flex;gap:6px}.icon-btn{width:36px;height:36px;border-radius:9px;background:transparent;border:1px solid transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;transition:.18s ease}.icon-btn:hover{background:var(--panel);border-color:var(--line);color:var(--text)}
+.icon-btn svg,.input-btn svg,.send-btn svg,.new-chat svg,.map-btn svg{width:17px;height:17px}
+.lang-switch{display:flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--line);border-radius:9px;background:var(--panel)}
+.lang-btn{height:28px;padding:0 9px;border-radius:6px;background:transparent;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:.15s ease}
+.lang-btn:hover{color:var(--text)}
+.lang-btn.active{background:var(--accent-soft);color:var(--accent)}
+.status-bar{height:34px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:8px;color:var(--dim);font-size:10px;flex-shrink:0}.status-bar .dot{width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 0 4px rgba(114,178,138,.08)}
+.chat{flex:1;overflow-y:auto;scroll-behavior:smooth}.chat-inner{max-width:900px;margin:0 auto;padding:48px 28px 150px}
+.chat::-webkit-scrollbar{width:8px}.chat::-webkit-scrollbar-thumb{background:var(--panel-3);border-radius:30px}.chat::-webkit-scrollbar-track{background:transparent}
+.welcome-card{max-width:760px;margin:50px auto 22px;text-align:center;background:transparent;border:0;padding:10px 0}.welcome-kicker{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.6px;margin-bottom:12px;text-transform:uppercase}.welcome-card h2{font-size:34px;line-height:1.22;letter-spacing:-1px;margin-bottom:13px;font-weight:700}.welcome-card p{font-size:14px;color:var(--muted);line-height:1.9;max-width:680px;margin:0 auto}.quick-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:22px}.quick-chip{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid var(--line);background:var(--panel);border-radius:999px;color:var(--muted);cursor:pointer;font-size:12px;transition:.18s ease}.quick-chip:hover{color:var(--text);border-color:var(--line-strong);background:var(--panel-2);transform:translateY(-1px)}.quick-chip svg{width:14px;height:14px;flex-shrink:0}
+.msg-wrapper{display:flex;gap:12px;max-width:860px;margin:0 auto 30px;animation:msgIn .3s ease forwards}.msg-wrapper.user{flex-direction:row-reverse}.msg-wrapper.bot{flex-direction:row}.msg-avatar{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;margin-top:3px;font-size:13px;background:var(--panel-2);border:1px solid var(--line)}.msg-wrapper.bot .msg-avatar,.msg-wrapper.error .msg-avatar{background:linear-gradient(135deg,var(--accent),#9f4f37);color:#fff;border:0}.msg-wrapper.user .msg-avatar{background:var(--panel-3)}.msg-avatar svg{width:15px;height:15px}
+.msg-bubble{font-size:14.5px;line-height:1.85;word-break:break-word;max-width:min(760px,calc(100vw - 150px))}.msg-wrapper.bot .msg-bubble{padding-top:1px;color:var(--text)}.msg-wrapper.user .msg-bubble{background:var(--panel-2);border:1px solid var(--line);padding:12px 15px;border-radius:14px}.msg-bubble img{max-width:100%;max-height:340px;object-fit:cover;border-radius:12px;border:1px solid var(--line);display:block;margin-bottom:10px}.msg-time{font-size:9px;color:var(--dim);margin-top:6px}.msg-wrapper.user .msg-time{text-align:right}.msg-wrapper.error .msg-bubble{padding:11px 14px;border-radius:12px;background:rgba(239,107,107,.08);border:1px solid rgba(239,107,107,.18);color:var(--danger)}
+.msg-actions{display:flex;gap:4px;margin-top:6px;opacity:0;transition:opacity .15s ease}.msg-wrapper:hover .msg-actions{opacity:1}.msg-action-btn{width:24px;height:24px;border-radius:6px;background:transparent;color:var(--dim);display:grid;place-items:center}.msg-action-btn:hover{background:var(--panel-2);color:var(--text)}.msg-action-btn svg{width:13px;height:13px}
+.typing-wrapper .msg-avatar{animation:logoPulse 1.4s ease-in-out infinite}@keyframes logoPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(217,119,87,.35)}50%{transform:scale(1.06);box-shadow:0 0 0 6px rgba(217,119,87,0)}}
+.typing-wrapper{display:flex;gap:12px;max-width:860px;margin:0 auto 24px}.typing-bubble{display:flex;align-items:center;gap:4px;padding:13px 14px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px}.typing-bubble span{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:typing 1.2s infinite}.typing-bubble span:nth-child(2){animation-delay:.12s}.typing-bubble span:nth-child(3){animation-delay:.24s}
+.composer-zone{position:absolute;left:0;right:0;bottom:0;padding:24px 24px 20px;background:linear-gradient(0deg,var(--bg) 66%,transparent);z-index:5}.composer{max-width:900px;margin:0 auto}.image-preview{display:none;align-items:center;gap:10px;margin-bottom:8px;padding:8px 10px;border:1px solid var(--line);background:var(--panel);border-radius:12px}.image-preview.active{display:flex}.image-preview img{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}.image-preview .label{flex:1;font-size:11px;color:var(--muted)}.image-preview .remove-btn{width:28px;height:28px;border-radius:8px;background:transparent;color:var(--dim);cursor:pointer;display:grid;place-items:center}.image-preview .remove-btn:hover{background:var(--panel-2);color:var(--danger)}.image-preview .remove-btn svg{width:13px;height:13px}
+.input-bar{display:flex;align-items:flex-end;gap:7px;padding:8px;border:1px solid var(--line-strong);background:var(--panel);border-radius:18px;box-shadow:var(--shadow);transition:.18s ease}.input-bar:focus-within{border-color:rgba(217,119,87,.55);box-shadow:0 0 0 3px var(--accent-soft),var(--shadow)}.input-bar input[type="text"]{flex:1;min-width:0;height:44px;border:0;outline:0;background:transparent;color:var(--text);padding:0 8px;font-size:14px}.input-bar input[type="text"]::placeholder{color:var(--dim)}.input-actions{display:flex;align-items:center;gap:4px}.input-btn{width:38px;height:38px;border-radius:10px;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center}.input-btn:hover{background:var(--panel-2);color:var(--text)}.send-btn{width:40px;height:40px;border-radius:11px;background:var(--text);color:var(--bg);cursor:pointer;display:grid;place-items:center;font-size:16px;transition:.18s ease}.send-btn:hover:not(:disabled){background:var(--accent);color:#fff;transform:translateY(-1px)}.send-btn:disabled{opacity:.35;cursor:not-allowed}.input-hint{text-align:center;font-size:9px;color:var(--dim);margin-top:9px}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes typing{0%,70%,100%{transform:translateY(0);opacity:.35}35%{transform:translateY(-4px);opacity:1}}
+.service-card{max-width:820px;margin:0 auto 30px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel);box-shadow:0 10px 30px rgba(0,0,0,.12);animation:msgIn .3s ease forwards}
+.card-head{padding:14px 16px;font-weight:700;font-size:13.5px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.card-head svg{width:16px;height:16px;color:var(--accent);flex-shrink:0}
+.card-body{padding:16px}
+.card-body>p{font-size:13px;color:var(--muted);line-height:1.85;margin-bottom:12px}
+.leaflet-map{height:360px;width:100%;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--panel-2)}
+.map-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.map-btn{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:10px;cursor:pointer;font-weight:600;font-size:12.5px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);transition:.18s ease}
+.map-btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+.map-btn.primary:hover{background:var(--accent-2)}
+.map-btn.secondary:hover{background:var(--panel-3);border-color:var(--line-strong)}
+.result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 4px}
+.result-stat{padding:12px;border-radius:12px;background:var(--panel-2);border:1px solid var(--line)}
+.result-stat .stat-label{font-size:10.5px;color:var(--muted)}
+.result-stat .stat-value{font-size:18px;font-weight:700;margin-top:5px;color:var(--text)}
+.interpretation{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:13.5px;line-height:1.9;color:var(--text);white-space:pre-wrap}
+.interpretation strong{display:block;margin-bottom:8px;color:var(--accent);font-weight:700}
+.sat-map-img{width:100%;border-radius:12px;border:1px solid var(--line);margin-top:14px;display:block}
+.soil-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.soil-tag{padding:6px 12px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);font-size:11.5px;color:var(--muted)}
+@media(max-width:700px){.result-grid{grid-template-columns:repeat(2,1fr)}.leaflet-map{height:260px}}
+.mobile-sidebar-btn{display:none}
+.sidebar-close{display:none}
+.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(8,8,7,.55);z-index:899;opacity:0;transition:opacity .25s ease}
+.sidebar-backdrop.active{display:block;opacity:1}
+@media(max-width:900px){.sidebar{width:230px}.chat-inner{padding-left:20px;padding-right:20px}.welcome-card h2{font-size:29px}}
+@media(max-width:700px){
+  .sidebar{position:fixed;top:0;bottom:0;right:0;width:80vw;max-width:300px;z-index:900;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-10px 0 40px rgba(0,0,0,.35);padding-top:max(14px,env(safe-area-inset-top))}
+  .sidebar.open{transform:translateX(0)}
+  .mobile-sidebar-btn{display:grid}
+  .sidebar-close{display:grid;width:32px;height:32px;border-radius:8px;background:transparent;color:var(--muted);align-items:center;justify-content:center;font-size:15px}
+  .sidebar-close:hover{background:var(--panel-3);color:var(--text)}
+  .topbar{padding:0 12px}
+  .model-wrap{gap:7px}
+  .live{display:none}
+  .chat-inner{padding:28px 14px 145px}
+  .welcome-card{margin-top:28px}
+  .welcome-card h2{font-size:25px}
+  .quick-actions{gap:7px}
+  .quick-chip{font-size:11.5px;padding:8px 11px}
+  .msg-wrapper{gap:9px;margin-bottom:24px}
+  .msg-bubble{font-size:14px;max-width:calc(100vw - 74px)}
+  .composer-zone{padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
+  .input-bar{border-radius:15px}
+  .input-bar input[type="text"]{font-size:16px}
+  .input-hint{display:none}
+  .data-table{display:block;overflow-x:auto;white-space:nowrap}
+  .result-grid{grid-template-columns:repeat(2,1fr)}
+  .field-card{width:100%;height:100%;border-radius:0}
+  .field-modal{padding:0}
+}
+
+/* === تسجيل الدخول / إنشاء حساب === */
+.overlay{position:fixed;inset:0;background:rgba(8,8,7,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9000;padding:16px}
+.overlay.hidden{display:none}
+.auth-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:var(--shadow);text-align:center}
+.auth-card .brand-mark{margin:0 auto 16px}
+.auth-card h2{font-size:20px;margin-bottom:6px}
+.auth-card .sub{color:var(--muted);font-size:12.5px;line-height:1.8;margin-bottom:20px}
+.auth-card input{width:100%;padding:12px 13px;border:1px solid var(--line-strong);background:var(--panel-2);color:var(--text);border-radius:10px;margin-bottom:10px;text-align:right}
+.auth-card input::placeholder{color:var(--dim)}
+.auth-card input:focus{outline:0;border-color:var(--accent)}
+.auth-btn{width:100%;height:44px;border-radius:11px;background:var(--accent);color:#fff;font-weight:700;font-size:14px;margin-top:4px;transition:.18s ease}
+.auth-btn:hover:not(:disabled){background:var(--accent-2)}
+.auth-btn:disabled{opacity:.55;cursor:not-allowed}
+.auth-error{min-height:16px;font-size:12px;margin-top:10px;color:var(--danger)}
+.auth-switch{margin-top:16px;font-size:12px;color:var(--muted)}
+.auth-switch a{color:var(--accent);cursor:pointer;font-weight:700}
+.sessions-card{width:100%;max-width:460px;max-height:78vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow)}
+.sessions-card h2{font-size:17px;margin-bottom:14px}
+
+/* === حقول إنشاء الحساب الإضافية === */
+.auth-signup-fields{display:none}
+.auth-signup-fields.active{display:block}
+.usage-type-field{margin-bottom:12px;text-align:right}
+.usage-type-label{font-size:11.5px;color:var(--muted);margin-bottom:8px;font-weight:600;padding:0 2px}
+.usage-type-options{display:flex;gap:6px;flex-wrap:wrap}
+.usage-chip{flex:1;min-width:90px;padding:10px 8px;border:1px solid var(--line-strong);background:var(--panel-2);color:var(--muted);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:.15s ease;text-align:center}
+.usage-chip:hover{border-color:var(--line-strong);color:var(--text);background:var(--panel-3)}
+.usage-chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+
+/* === تنبيه صغير (toast) === */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--panel);border:1px solid var(--line-strong);color:var(--text);padding:11px 18px;border-radius:12px;font-size:12.5px;box-shadow:var(--shadow);z-index:9999;opacity:0;pointer-events:none;transition:.2s ease;display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast svg{width:15px;height:15px;color:var(--green);flex-shrink:0}
+
+/* === تأكيد إجراء (حذف) === */
+.confirm-card{width:100%;max-width:340px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);text-align:center}
+.confirm-card p{font-size:13px;color:var(--muted);line-height:1.8;margin:8px 0 18px}
+.confirm-card h3{font-size:15px;font-weight:700}
+.confirm-actions{display:flex;gap:8px}
+.confirm-actions button{flex:1;height:40px;border-radius:10px;font-weight:600;font-size:12.5px}
+.confirm-cancel{background:var(--panel-2);color:var(--text);border:1px solid var(--line)}
+.confirm-cancel:hover{background:var(--panel-3)}
+.confirm-delete{background:var(--danger);color:#fff}
+.confirm-delete:hover{opacity:.9}
+
+/* === نافذة رسم الحقل (أقمار صناعية) === */
+.field-modal{position:fixed;inset:0;background:rgba(8,8,7,.78);backdrop-filter:blur(6px);z-index:9500;display:flex;align-items:center;justify-content:center;padding:14px}
+.field-modal.hidden{display:none}
+.field-card{width:100%;max-width:1000px;height:90vh;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+.field-top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.field-top h3{font-size:14.5px;font-weight:700;flex:0 0 auto;display:flex;align-items:center;gap:8px}
+.field-top h3 svg{width:16px;height:16px;color:var(--accent)}
+.field-search{display:flex;gap:6px;flex:1;min-width:210px}
+.field-search input{flex:1;height:38px;padding:0 11px;border:1px solid var(--line-strong);background:var(--panel-2);color:var(--text);border-radius:10px;font-size:13px}
+.field-search input:focus{outline:0;border-color:var(--accent)}
+.field-hint{font-size:11.5px;color:var(--muted);padding:9px 16px 0;line-height:1.8}
+#fieldMap{flex:1;width:100%;min-height:200px}
+.field-bottom{display:flex;align-items:center;gap:8px;padding:11px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+.field-info{flex:1;min-width:150px;font-size:12px;color:var(--muted)}
+/* جواب منظم بلا رموز */
+.msg-bubble .ln{margin:2px 0}
+.msg-bubble .hd{font-weight:700;margin:10px 0 4px;color:var(--accent)}
+.msg-bubble .li{padding-inline-start:12px}
+.followups{display:flex;flex-wrap:wrap;gap:8px;max-width:860px;margin:-14px auto 26px}
+.data-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+.data-table th,.data-table td{border:1px solid var(--line);padding:7px 9px;text-align:center;color:var(--text)}
+.data-table th{background:var(--panel-2);color:var(--muted);font-weight:600}
+.date-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:9px;margin-top:10px}
+.date-item{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel-2)}
+.date-item img{width:100%;height:92px;object-fit:cover;display:block}
+.date-item .lbl{font-size:10.5px;padding:5px;text-align:center;color:var(--muted)}
+@media(max-width:700px){.field-card{height:94vh}.field-top h3{width:100%}}
+</style>
+</head>
+<body>
+<div class="app-shell" style="direction: ltr;">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-top">
+      <div class="brand-mini"><div class="brand-mark"><img src="https://agro-synth.github.io/AgroSynth/1000007537.jpg" alt="AgroSynth"></div><span>AgroSynth</span></div>
+      <button class="sidebar-close" id="sidebarClose" title="إغلاق">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+    <button class="new-chat" id="newChat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+      <span id="txtNewChat">Nouvelle conversation</span>
+    </button>
+    <div class="side-section">
+      <div class="side-title">AgroSynth</div>
+      <div class="side-item active"><span class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3"></circle></svg></span><span id="txtNavAssistant">Assistant agricole</span></div>
+      <div class="side-item"><span class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 12 3 7l9-5 9 5-9 5Z"></path><path d="M3 7v10l9 5 9-5V7"></path></svg></span><span id="txtNavPlant">Analyse des plantes</span></div>
+      <div class="side-item"><span class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 18a5 5 0 0 0-10 0"></path><circle cx="12" cy="9" r="4"></circle><path d="M3 20h18"></path></svg></span><span id="txtNavWeather">Météo et irrigation</span></div>
+      <div class="side-item"><span class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.2"></rect><rect x="14" y="3" width="7" height="7" rx="1.2"></rect><rect x="3" y="14" width="7" height="7" rx="1.2"></rect><rect x="14" y="14" width="7" height="7" rx="1.2"></rect></svg></span><span id="txtNavField">Données du champ</span></div>
+    </div>
+    <div class="side-section">
+      <div class="side-title" id="txtHistoryTitle">Conversations précédentes</div>
+      <div class="sessions-list" id="sessionsList"><div class="session-row" data-id="b75465cd-c81d-42ee-99e5-47b3ad88d180" title="27&rlm;/9&rlm;/2026، 14:55:54"><span class="session-title">p^p</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="bf8710d3-b527-4f51-b793-b62aaae1a195" title="26&rlm;/9&rlm;/2026، 21:49:24"><span class="session-title">مرحبا</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="bd559d04-6c15-4720-8014-33b6a383c8d6" title="24&rlm;/9&rlm;/2026، 15:42:10"><span class="session-title">من انت</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="3937911e-2e06-4ece-89b3-93827348b4a4" title="24&rlm;/9&rlm;/2026، 15:40:28"><span class="session-title">Voici les limites de mon exploitation. Analyse-la par satell</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="02d9d620-acbd-440e-8a28-869cc3abfcf8" title="24&rlm;/9&rlm;/2026، 15:32:34"><span class="session-title">Voici les limites de mon exploitation. Analyse-la par satell</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="1873ca37-0d59-4f54-8357-652120c187f4" title="24&rlm;/9&rlm;/2026، 14:22:29"><span class="session-title">مرحبا</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="6dec4dd2-bf3d-4641-94a0-ad3c1b91300a" title="24&rlm;/9&rlm;/2026، 12:36:31"><span class="session-title">Je veux diagnostiquer un problème sur ma plante :</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="14788fa1-f8d9-4af1-b092-dc7fab3c54c1" title="24&rlm;/9&rlm;/2026، 12:28:28"><span class="session-title">مرحبا</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="050d8b39-1982-4490-b003-a5f913afad12" title="23&rlm;/9&rlm;/2026، 22:53:30"><span class="session-title">ثث</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="20433ecf-179f-421b-ac2c-2b69b19797a2" title="23&rlm;/9&rlm;/2026، 22:18:05"><span class="session-title">مرحبا</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="33ee618e-2653-4fe8-9afa-9f3bf40667e3" title="23&rlm;/9&rlm;/2026، 20:03:20"><span class="session-title">مرحبا</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="72e61b84-f342-418f-85a8-fee85a69c597" title="23&rlm;/9&rlm;/2026، 14:50:06"><span class="session-title">cscsc</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="807c1857-6fcd-4518-a304-867e57f6c0c4" title="23&rlm;/9&rlm;/2026، 13:36:45"><span class="session-title">d</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div><div class="session-row" data-id="6aeaf0d1-5d8c-429a-ace8-dc7dc8e3429a" title="18&rlm;/9&rlm;/2026، 10:30:34"><span class="session-title">هذه هي حدود ضيعتي، حللها بالأقمار الصناعية وعطيني آخر صورة م</span><div class="session-actions"><button class="session-action-btn" title="مشاركة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"></path></svg></button><button class="session-action-btn danger" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg></button></div></div></div>
+    </div>
+    <div class="side-spacer"></div>
+    <div class="side-footer">
+      <div class="side-item" id="sideTheme"><span class="side-icon" id="sideThemeIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path></svg></span><span id="txtTheme">Apparence</span></div>
+      <div class="account">
+        <div class="avatar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.6-4 5-6 8-6s6.4 2 8 6"></path></svg></div>
+        <div style="flex:1;min-width:0"><strong id="userEmail">belaidsoufiane960@gmail.com</strong><small id="txtFreeAccount">Compte gratuit</small></div>
+        <button class="logout-btn" id="logoutBtn" title="خروج">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="model-wrap">
+        <button class="icon-btn mobile-sidebar-btn" id="mobileSidebarBtn" title="القائمة">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <button class="model-btn" title="النموذج">AgroSynth AI <span class="chev">⌄</span></button>
+        <div class="live"><i></i><span id="txtLive">En ligne</span></div>
+      </div>
+      <div class="top-actions">
+        <div class="lang-switch" id="langSwitch">
+          <button type="button" class="lang-btn active" data-lang="fr">FR</button>
+          <button type="button" class="lang-btn" data-lang="ar">AR</button>
+          <button type="button" class="lang-btn" data-lang="en">EN</button>
+        </div>
+        <button class="icon-btn" id="themeToggle" title="تبديل الوضع"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path></svg></button>
+        <button class="icon-btn" id="clearChat" title="مسح المحادثة">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="status-bar"><span class="dot"></span><span id="txtStatusBar">Assistant agricole AgroSynth — connecté à : satellites, météo, sol</span></div>
+
+    <section class="chat" id="messages">
+      <div class="chat-inner"><div class="welcome-card" id="welcomeCard">
+    <div class="welcome-kicker" id="txtWelcomeKicker">AGROSYNTH • INTELLIGENCE AGRICOLE</div>
+    <h2 id="txtWelcomeTitle">Bienvenue sur AgroSynth</h2>
+    <p id="txtWelcomeText">Votre assistant agricole intelligent, connecté aux satellites Sentinel-2, à la météo réelle et aux cartes des sols. Posez vos questions sur l'irrigation, la météo, ou demandez une analyse satellite.</p>
+    <div class="quick-actions">
+      <button class="quick-chip" data-text="بغيت نحلل الضيعة ديالي بالأقمار الصناعية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22V12M12 12 3 7l9-5 9 5-9 5Z"></path><path d="M3 7v10l9 5 9-5V7"></path></svg><span id="txtChipSatellite">Analyse satellite</span></button>
+      <button class="quick-chip" data-text="شنو حالة الطقس ديال الضيعة ديالي؟"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 18a5 5 0 0 0-10 0"></path><circle cx="12" cy="9" r="4"></circle><path d="M3 20h18"></path></svg><span id="txtChipWeather">Météo du champ</span></button>
+      <button class="quick-chip" data-text="بغيت نحلل التربة ديال الحقل ديالي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3v4M15 3v4M4 11h16M6 11l1 10h10l1-10"></path></svg><span id="txtChipSoil">Analyse du sol</span></button>
+      <button class="quick-chip" data-text="كيفاش ندير الري بالتنقيط؟"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c3 4 6 7 6 10.5A6 6 0 0 1 6 13.5C6 10 9 7 12 3Z"></path></svg><span id="txtChipIrrigation">Irrigation intelligente</span></button>
+    </div>
+  </div><div class="welcome-card">
+    <div class="welcome-kicker">AGROSYNTH • INTELLIGENCE AGRICOLE</div>
+    <h2>Bienvenue sur AgroSynth</h2>
+    <p>Votre assistant agricole intelligent, connecté aux satellites Sentinel-2, à la météo réelle et aux cartes des sols. Posez vos questions sur l'irrigation, la météo, ou demandez une analyse satellite.</p>
+    <div class="quick-actions">
+      <button class="quick-chip" data-text="بغيت نحلل الضيعة ديالي بالأقمار الصناعية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22V12M12 12 3 7l9-5 9 5-9 5Z"></path><path d="M3 7v10l9 5 9-5V7"></path></svg><span>Analyse satellite</span></button>
+      <button class="quick-chip" data-text="شنو حالة الطقس ديال الضيعة ديالي؟"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 18a5 5 0 0 0-10 0"></path><circle cx="12" cy="9" r="4"></circle><path d="M3 20h18"></path></svg><span>Météo du champ</span></button>
+      <button class="quick-chip" data-text="بغيت نحلل التربة ديال الحقل ديالي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3v4M15 3v4M4 11h16M6 11l1 10h10l1-10"></path></svg><span>Analyse du sol</span></button>
+      <button class="quick-chip" data-text="كيفاش ندير الري بالتنقيط؟"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c3 4 6 7 6 10.5A6 6 0 0 1 6 13.5C6 10 9 7 12 3Z"></path></svg><span>Irrigation intelligente</span></button>
+    </div>
+  </div></div>
+    </section>
+
+    <div class="composer-zone">
+      <div class="composer">
+        <div class="image-preview" id="imagePreview">
+          <img id="previewImg" src="" alt="preview">
+          <div class="label" id="txtImagePreview">Image prête pour analyse</div>
+          <button class="remove-btn" id="removeImage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        </div>
+        <div class="input-bar">
+          <input type="text" id="userInput" placeholder="Écrivez votre question à AgroSynth..." autocomplete="off">
+          <div class="input-actions">
+            <button class="input-btn" id="attachBtn" title="إرفاق صورة">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            </button>
+            <button class="send-btn" id="sendBtn" title="إرسال">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M5 12l7-7 7 7"></path></svg>
+            </button>
+          </div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" style="display:none">
+        <div class="input-hint" id="txtInputHint">AgroSynth peut se tromper. Vérifiez toujours les informations importantes.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- شاشة تسجيل الدخول / إنشاء حساب -->
+<div class="overlay hidden" id="authOverlay">
+  <div class="auth-card">
+    <div class="brand-mark"><img src="https://agro-synth.github.io/AgroSynth/1000007537.jpg" alt="AgroSynth"></div>
+    <h2 id="authTitle">Connexion</h2>
+    <p class="sub" id="authSub">Connectez-vous avec votre e-mail et mot de passe pour discuter avec AgroSynth et garder vos conversations enregistrées.</p>
+
+    <div class="auth-signup-fields" id="authSignupFields">
+      <input type="text" id="authFullName" placeholder="Nom complet" autocomplete="name">
+      <div class="usage-type-field">
+        <div class="usage-type-label" id="txtUsageTypeLabel">Type d'utilisation</div>
+        <div class="usage-type-options" id="usageTypeOptions">
+          <button type="button" class="usage-chip" data-value="commercial" id="usageChipCommercial">Commercial</button>
+          <button type="button" class="usage-chip" data-value="student_researcher" id="usageChipStudent">Étudiant / Chercheur</button>
+          <button type="button" class="usage-chip" data-value="other" id="usageChipOther">Autre</button>
+        </div>
+      </div>
+    </div>
+
+    <input type="email" id="authEmail" placeholder="E-mail" autocomplete="email">
+    <input type="password" id="authPassword" placeholder="Mot de passe" autocomplete="current-password">
+    <button class="auth-btn" id="authSubmit">Connexion</button>
+    <div class="auth-error" id="authError" style="color: var(--danger);"></div>
+    <div class="auth-switch"><span id="authSwitchText">Pas encore de compte ?</span> <a id="authSwitchLink">Créer un compte</a></div>
+  </div>
+</div>
+
+<!-- نافذة المحادثات السابقة (نسخة موبايل / تفصيلية) -->
+<div class="overlay hidden" id="sessionsOverlay">
+  <div class="sessions-card">
+    <h2 id="txtSessionsModalTitle">Conversations précédentes</h2>
+    <div id="sessionsListModal"></div>
+    <button class="auth-btn" id="closeSessionsBtn" style="margin-top:14px;background:var(--panel-2);color:var(--text)">Fermer</button>
+  </div>
+</div>
+
+<!-- تأكيد الحذف -->
+<div class="overlay hidden" id="confirmOverlay">
+  <div class="confirm-card">
+    <h3 id="txtDeleteTitle">Supprimer la conversation</h3>
+    <p id="txtDeleteText">Action irréversible : la conversation et toutes ses données seront supprimées.</p>
+    <div class="confirm-actions">
+      <button class="confirm-cancel" id="confirmCancel">Annuler</button>
+      <button class="confirm-delete" id="confirmDelete">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- نافذة رسم حدود الحقل فوق صور الأقمار الصناعية -->
+<div class="field-modal hidden" id="fieldModal">
+  <div class="field-card">
+    <div class="field-top">
+      <h3 id="fieldTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 12 3 7l9-5 9 5-9 5Z"></path><path d="M3 7v10l9 5 9-5V7"></path></svg><span>ارسم حدود ضيعتك</span></h3>
+      <div class="field-search">
+        <input id="fieldSearch" placeholder="Ville ou village…" autocomplete="off">
+        <button class="map-btn secondary" id="fieldSearchBtn">Rechercher</button>
+        <button class="map-btn secondary" id="fieldLocate">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
+          <span id="txtFieldLocate">Ma position</span>
+        </button>
+      </div>
+      <button class="map-btn secondary" id="fieldClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+    </div>
+    <p class="field-hint" id="fieldHint">زيد بالزووم حتى تبان الضيعة، ثم استعمل أداة الرسم فاليسار (مضلع أو مستطيل) وحدد الحدود.</p>
+    <div id="fieldMap"></div>
+    <div class="field-bottom">
+      <div class="field-info" id="fieldInfo">ماشي محدد بعد.</div>
+      <button class="map-btn secondary" id="fieldClear">Effacer</button>
+      <button class="map-btn primary" id="fieldConfirm">Confirmer et analyser</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// نفس مشروع Supabase اللي كيتحقق منو السيرفر (agrosynth-worker)
+const SUPABASE_URL = "https://fanzupstktgwuxswlhgl.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_oj8jCSuhLOO3gIUhLbde_w_9lulmc5t";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const WORKER_URL = 'https://agriboot.unfo-adminsiteweb.workers.dev/api/chat';
+const SESSIONS_URL = 'https://agriboot.unfo-adminsiteweb.workers.dev/api/sessions';
+const MESSAGES_URL = 'https://agriboot.unfo-adminsiteweb.workers.dev/api/messages';
+const GEOCODE_URL  = 'https://agriboot.unfo-adminsiteweb.workers.dev/api/geocode';
+
+// === أيقونات SVG (بديل الإيموجي) ===
+const ICONS = {
+  bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4m-4 0h8"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/></svg>',
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.6-4 5-6 8-6s6.4 2 8 6"/></svg>',
+  satellite: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22V12M12 12 3 7l9-5 9 5-9 5Z"/><path d="M3 7v10l9 5 9-5V7"/></svg>',
+  weather: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 18a5 5 0 0 0-10 0"/><circle cx="12" cy="9" r="4"/><path d="M3 20h18"/></svg>',
+  soil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3v4M15 3v4M4 11h16M6 11l1 10h10l1-10"/></svg>',
+  irrigation: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c3 4 6 7 6 10.5A6 6 0 0 1 6 13.5C6 10 9 7 12 3Z"/></svg>',
+  climate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg>',
+  warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>',
+  delete: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2L7 7"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.6 6.8-3.9M8.6 13.4l6.8 3.9"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>',
+  diagnose: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="5"/></svg>',
+  camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="14" r="3.5"/></svg>',
+  power: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v8"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>'
+};
+function icon(name){ return ICONS[name] || ''; }
+
+// شعار الموقع (يظهر بجانب رسائل البوت وأثناء الكتابة)
+const LOGO_URL = 'https://agro-synth.github.io/AgroSynth/1000007537.jpg';
+function setBotAvatar(avatar){
+  const img = new Image();
+  img.alt = 'AgroSynth';
+  img.onerror = () => { avatar.innerHTML = icon('bot'); };
+  img.src = LOGO_URL;
+  avatar.innerHTML = '';
+  avatar.appendChild(img);
+}
+
+// ---------------------------------------------------------------------------
+// اللغات (FR افتراضي، مع AR وEN)
+// ---------------------------------------------------------------------------
+const LANG = {
+  fr: { dir: 'ltr',
+    newChat: 'Nouvelle conversation', navAssistant: 'Assistant agricole', navPlant: 'Analyse des plantes',
+    navWeather: 'Météo et irrigation', navField: 'Données du champ', historyTitle: 'Conversations précédentes',
+    theme: 'Apparence', freeAccount: 'Compte gratuit', live: 'En ligne',
+    statusBar: 'Assistant agricole AgroSynth — connecté à : satellites, météo, sol',
+    welcomeKicker: 'AGROSYNTH • INTELLIGENCE AGRICOLE', welcomeTitle: 'Bienvenue sur AgroSynth',
+    welcomeText: "Votre assistant agricole intelligent, connecté aux satellites Sentinel-2, à la météo réelle et aux cartes des sols. Posez vos questions sur l'irrigation, la météo, ou demandez une analyse satellite.",
+    chipSatellite: 'Analyse satellite', chipWeather: 'Météo du champ', chipSoil: 'Analyse du sol', chipIrrigation: 'Irrigation intelligente',
+    inputPlaceholder: 'Écrivez votre question à AgroSynth...', inputHint: 'AgroSynth peut se tromper. Vérifiez toujours les informations importantes.',
+    imagePreview: 'Image prête pour analyse',
+    authLoginTitle: 'Connexion', authLoginSub: "Connectez-vous avec votre e-mail et mot de passe pour discuter avec AgroSynth et garder vos conversations enregistrées.",
+    authSignupTitle: 'Créer un compte', authSignupSub: 'Créez un compte pour discuter avec AgroSynth et garder vos conversations enregistrées.',
+    fullNamePlaceholder: 'Nom complet', usageTypeLabel: "Type d'utilisation",
+    usageCommercial: 'Commercial', usageStudent: 'Étudiant / Chercheur', usageOther: 'Autre',
+    emailPlaceholder: 'E-mail', passwordPlaceholder: 'Mot de passe',
+    loginBtn: 'Connexion', signupBtn: 'Créer le compte',
+    noAccount: "Pas encore de compte ?", haveAccount: 'Vous avez déjà un compte ?', signupLink: 'Créer un compte', loginLink: 'Se connecter',
+    fillEmailPassword: "Veuillez remplir l'e-mail et le mot de passe.", fillFullName: 'Veuillez entrer le nom complet.',
+    chooseUsageType: "Veuillez choisir le type d'utilisation.",
+    accountCreated: 'Compte créé ! Vérifiez votre e-mail pour confirmer, puis connectez-vous.', loginFailed: 'Connexion impossible.',
+    sessionsModalTitle: 'Conversations précédentes', close: 'Fermer', noHistory: 'Aucune conversation', historyLoadError: 'Impossible de charger les conversations',
+    deleteTitle: 'Supprimer la conversation', deleteText: 'Action irréversible : la conversation et toutes ses données seront supprimées.',
+    cancel: 'Annuler', delete: 'Supprimer', deleteSuccess: 'Conversation supprimée', deleteFail: 'Suppression impossible : ',
+    copySuccess: 'Copié', copyFail: 'Copie impossible',
+    fieldDrawTitle: 'Dessinez les limites de votre champ', fieldPickTitle: 'Choisissez la position du champ',
+    fieldSearchPlaceholder: 'Ville ou village…', fieldSearchBtn: 'Rechercher', fieldLocate: 'Ma position',
+    fieldHintDraw: "Zoomez jusqu'à voir le champ, utilisez l'outil de dessin à gauche (polygone ou rectangle), puis confirmez.",
+    fieldHintPick: 'Zoomez et cliquez sur la carte pour indiquer la position du champ, puis confirmez.',
+    fieldInfoDefault: 'Rien de défini pour le moment.', fieldClear: 'Effacer', fieldConfirm: 'Confirmer et analyser',
+    geoNotFound: 'Lieu introuvable, essayez un autre nom.', geoMoved: 'Carte déplacée sur ', geoSearchFail: 'Recherche impossible, déplacez la carte manuellement.',
+    fieldAreaInfo: 'Superficie : ', fieldPointsInfo: ' ha · Points : ', fieldLocationInfo: 'Position : ', locatingYou: 'Recherche de votre position…',
+    youAreHere: 'Vous êtes ici — dessinez les limites du champ.', locateFail: 'Position introuvable, cherchez par nom.',
+    alertPickLocation: 'Cliquez sur la carte pour indiquer la position.', alertDrawField: "Dessinez d'abord les limites du champ avec l'outil à gauche.",
+    fieldRedirectMsg: 'Pour analyser votre champ :\n1. Localisez-le sur la carte satellite qui vient de s\'ouvrir.\n2. Zoomez et dessinez les limites.\n3. Confirmez pour obtenir la dernière image et les indicateurs.',
+    fieldDrawMsg: 'Dessinez les limites de votre champ sur la carte, puis nous l\'analyserons avec la dernière image disponible.',
+    noAnswer: "Pas de réponse claire, essayez de reformuler.", connError: 'Erreur de connexion : ', rateLimited: 'Limite de requêtes atteinte. Patientez 60 secondes.', waitSeconds: 'Patientez ',
+    weatherCard: 'Météo — ', selectedLocation: 'l\'emplacement choisi', wDay: 'Jour', wMax: 'Max', wMin: 'Min', wRain: 'Pluie mm', wEt0: 'ET₀ mm',
+    irrigationCard: 'Plan d\'irrigation — ', irrigAvgEt0: 'ET₀ moyen', irrigAvgNeed: 'Besoin moyen mm', irrigAvgM3: 'm³/ha/jour', irrigDay: 'Jour', irrigNeed: 'Besoin mm',
+    soilCard: 'Analyse du sol', soilProperty: 'Propriété', soilValue: 'Valeur',
+    climateCard: 'Résumé climatique — 30 derniers jours', climateIndicator: 'Indicateur', climateAvg: 'Moyenne',
+    satelliteCard: 'Analyse du champ — Sentinel-2 L2A', ndviAvg: 'NDVI moyen', ndmiLbl: 'NDMI', areaLbl: 'Superficie', pixelCount: 'Nombre de pixels',
+    insufficientData: 'Données insuffisantes — souvent à cause des nuages.', latestImage: 'Dernière image disponible du ', naturalColor: '(couleurs naturelles) :', sameDateNdvi: 'Même date, indice NDVI :',
+    otherDates: 'Autres dates disponibles :', weatherSameField: 'Météo sur le même champ :', soilSameField: 'Sol (dont pH) :', climateSummary30: 'Résumé climatique 30 jours :',
+    fSoilPh: 'pH', fSoilClay: 'Argile %', fSoilSand: 'Sable %', fSoilSilt: 'Limon %', fSoilSoc: 'Carbone organique', fSoilCec: 'CEC', fSoilN: 'Azote',
+    followupWeather: '+ Météo', followupSoil: 'Sol et pH', followupClimate: 'Climat 30 j', followupIrrigation: "Plan d'irrigation", followupFull: 'Analyse complète',
+  },
+  ar: { dir: 'rtl',
+    newChat: 'محادثة جديدة', navAssistant: 'المساعد الفلاحي', navPlant: 'تحليل النباتات',
+    navWeather: 'الطقس والري', navField: 'بيانات الحقل', historyTitle: 'المحادثات السابقة',
+    theme: 'المظهر', freeAccount: 'الحساب المجاني', live: 'متصل',
+    statusBar: 'مساعد AgroSynth الفلاحي — متصل بـ فلاحي AI: أقمار صناعية، طقس، تربة',
+    welcomeKicker: 'AGROSYNTH • AGRICULTURE AI', welcomeTitle: 'أهلاً بيك فـ AgroSynth',
+    welcomeText: 'مساعدتك الفلاحية الذكية، مربوطة بأقمار Sentinel-2، الطقس الحقيقي، وخرائط التربة. سولني على الري، الطقس، أو بغيت تحليل بالأقمار الصناعية.',
+    chipSatellite: 'تحليل بالأقمار الصناعية', chipWeather: 'طقس الضيعة', chipSoil: 'تحليل التربة', chipIrrigation: 'الري الذكي',
+    inputPlaceholder: 'اكتب سؤالك لـ AgroSynth...', inputHint: 'AgroSynth قد ترتكب أخطاء. تحقق دائماً من المعلومات المهمة.',
+    imagePreview: 'صورة جاهزة للتحليل',
+    authLoginTitle: 'تسجيل الدخول', authLoginSub: 'دخل بالبريد الإلكتروني وكلمة السر ديالك باش تبدا تهضر مع AgroSynth وتبقى المحادثات ديالك محفوظة.',
+    authSignupTitle: 'إنشاء حساب جديد', authSignupSub: 'خلق حساب باش تبدا تهضر مع AgroSynth وتبقى المحادثات ديالك محفوظة.',
+    fullNamePlaceholder: 'الاسم الكامل', usageTypeLabel: 'نوع الاستخدام',
+    usageCommercial: 'تجاري', usageStudent: 'طالب / باحث', usageOther: 'أخرى',
+    emailPlaceholder: 'البريد الإلكتروني', passwordPlaceholder: 'كلمة السر',
+    loginBtn: 'دخول', signupBtn: 'إنشاء الحساب',
+    noAccount: 'ماعندكش حساب؟', haveAccount: 'عندك حساب من قبل؟', signupLink: 'سجل حساب جديد', loginLink: 'سجل الدخول',
+    fillEmailPassword: 'خاصك تعمر البريد وكلمة السر.', fillFullName: 'خاصك تكتب الاسم الكامل.',
+    chooseUsageType: 'خاصك تختار نوع الاستخدام.',
+    accountCreated: 'تم إنشاء الحساب! تحقق من بريدك الإلكتروني لتأكيد الحساب، ثم سجل الدخول.', loginFailed: 'تعذر تسجيل الدخول.',
+    sessionsModalTitle: 'المحادثات السابقة', close: 'إغلاق', noHistory: 'ماكاين حتى محادثة سابقة', historyLoadError: 'تعذر تحميل المحادثات',
+    deleteTitle: 'حذف المحادثة', deleteText: 'هاد الإجراء غير قابل للتراجع، غادي تتحذف المحادثة وكل البيانات المرتبطة بيها.',
+    cancel: 'إلغاء', delete: 'حذف', deleteSuccess: 'تم حذف المحادثة', deleteFail: 'تعذر الحذف: ',
+    copySuccess: 'تم النسخ', copyFail: 'تعذر النسخ',
+    fieldDrawTitle: 'ارسم حدود ضيعتك', fieldPickTitle: 'حدد موقع الضيعة',
+    fieldSearchPlaceholder: 'اسم المدينة أو الدوار…', fieldSearchBtn: 'بحث', fieldLocate: 'موقعي',
+    fieldHintDraw: 'زيد بالزووم حتى تبان الضيعة، ثم استعمل أداة الرسم فاليسار (مضلع أو مستطيل)، وفاللخر ضغط تأكيد وتحليل.',
+    fieldHintPick: 'زيد بالزووم وضغط على الخريطة باش تحدد نقطة الضيعة، ثم ضغط تأكيد.',
+    fieldInfoDefault: 'ماشي محدد بعد.', fieldClear: 'مسح الرسم', fieldConfirm: 'تأكيد وتحليل',
+    geoNotFound: 'ملقيناش هاد المكان، جرب اسم آخر.', geoMoved: 'الخريطة فـ ', geoSearchFail: 'تعذر البحث دابا، حرك الخريطة يدوياً.',
+    fieldAreaInfo: 'المساحة: ', fieldPointsInfo: ' هكتار · النقاط: ', fieldLocationInfo: 'الموقع: ', locatingYou: 'كنقلبو على موقعك…',
+    youAreHere: 'ها موقعك — دابا رسم حدود الضيعة.', locateFail: 'تعذر تحديد موقعك، قلب بالاسم.',
+    alertPickLocation: 'ضغط على الخريطة باش تحدد الموقع.', alertDrawField: 'رسم حدود الضيعة أولاً بأداة الرسم فاليسار.',
+    fieldRedirectMsg: 'باش نحلل ضيعتك:\n1. حددها فالخريطة اللي طلعات (صور أقمار صناعية).\n2. زيد بالزووم وارسم الحدود.\n3. ضغط تأكيد وتحليل ونجيب ليك آخر صورة والمؤشرات.',
+    fieldDrawMsg: 'رسم حدود ضيعتك فالخريطة، ونحللها ليك بآخر صورة متوفرة.',
+    noAnswer: 'ما وصلنيش جواب واضح، جرب صيغة أخرى.', connError: 'خطأ فالاتصال: ', rateLimited: 'وصلتي للحد ديال الطلبات. تسنى 60 ثانية وعاود.', waitSeconds: 'تسنى ',
+    weatherCard: 'الطقس — ', selectedLocation: 'الموقع المحدد', wDay: 'اليوم', wMax: 'عظمى', wMin: 'صغرى', wRain: 'مطر mm', wEt0: 'ET₀ mm',
+    irrigationCard: 'خطة السقي — ', irrigAvgEt0: 'متوسط ET₀', irrigAvgNeed: 'متوسط الحاجة mm', irrigAvgM3: 'م³/هكتار/يوم', irrigDay: 'اليوم', irrigNeed: 'الحاجة mm',
+    soilCard: 'تحليل التربة', soilProperty: 'الخاصية', soilValue: 'القيمة',
+    climateCard: 'ملخص مناخي — آخر 30 يوم', climateIndicator: 'المؤشر', climateAvg: 'المتوسط',
+    satelliteCard: 'تحليل الحقل — Sentinel-2 L2A', ndviAvg: 'NDVI المتوسط', ndmiLbl: 'NDMI', areaLbl: 'المساحة', pixelCount: 'عدد البكسلات',
+    insufficientData: 'بيانات غير كافية — غالباً بسبب الغيوم.', latestImage: 'آخر صورة متوفرة بتاريخ ', naturalColor: '(ألوان طبيعية):', sameDateNdvi: 'نفس التاريخ بمؤشر NDVI:',
+    otherDates: 'التواريخ الأخرى المتوفرة:', weatherSameField: 'الطقس على نفس الحقل:', soilSameField: 'التربة (منها الحموضة pH):', climateSummary30: 'ملخص مناخي 30 يوم:',
+    fSoilPh: 'الحموضة pH', fSoilClay: 'الطين %', fSoilSand: 'الرمل %', fSoilSilt: 'الغرين %', fSoilSoc: 'الكربون العضوي', fSoilCec: 'CEC', fSoilN: 'النيتروجين',
+    followupWeather: 'زيد الطقس', followupSoil: 'التربة والحموضة', followupClimate: 'المناخ 30 يوم', followupIrrigation: 'خطة السقي', followupFull: 'تحليل شامل',
+  },
+  en: { dir: 'ltr',
+    newChat: 'New chat', navAssistant: 'Farming assistant', navPlant: 'Plant analysis',
+    navWeather: 'Weather & irrigation', navField: 'Field data', historyTitle: 'Previous chats',
+    theme: 'Appearance', freeAccount: 'Free account', live: 'Online',
+    statusBar: 'AgroSynth farming assistant — connected to: satellites, weather, soil',
+    welcomeKicker: 'AGROSYNTH • AGRICULTURE AI', welcomeTitle: 'Welcome to AgroSynth',
+    welcomeText: 'Your smart farming assistant, connected to Sentinel-2 satellites, real weather, and soil maps. Ask about irrigation, weather, or request a satellite analysis.',
+    chipSatellite: 'Satellite analysis', chipWeather: 'Field weather', chipSoil: 'Soil analysis', chipIrrigation: 'Smart irrigation',
+    inputPlaceholder: 'Ask AgroSynth a question...', inputHint: 'AgroSynth can make mistakes. Always check important information.',
+    imagePreview: 'Image ready for analysis',
+    authLoginTitle: 'Log in', authLoginSub: 'Log in with your email and password to chat with AgroSynth and keep your conversations saved.',
+    authSignupTitle: 'Create an account', authSignupSub: 'Create an account to chat with AgroSynth and keep your conversations saved.',
+    fullNamePlaceholder: 'Full name', usageTypeLabel: 'Usage type',
+    usageCommercial: 'Commercial', usageStudent: 'Student / Researcher', usageOther: 'Other',
+    emailPlaceholder: 'Email', passwordPlaceholder: 'Password',
+    loginBtn: 'Log in', signupBtn: 'Create account',
+    noAccount: "Don't have an account?", haveAccount: 'Already have an account?', signupLink: 'Sign up', loginLink: 'Log in',
+    fillEmailPassword: 'Please fill in the email and password.', fillFullName: 'Please enter your full name.',
+    chooseUsageType: 'Please choose the usage type.',
+    accountCreated: 'Account created! Check your email to confirm, then log in.', loginFailed: 'Login failed.',
+    sessionsModalTitle: 'Previous chats', close: 'Close', noHistory: 'No previous chats', historyLoadError: 'Could not load chats',
+    deleteTitle: 'Delete chat', deleteText: 'This action is irreversible: the chat and all related data will be deleted.',
+    cancel: 'Cancel', delete: 'Delete', deleteSuccess: 'Chat deleted', deleteFail: 'Could not delete: ',
+    copySuccess: 'Copied', copyFail: 'Copy failed',
+    fieldDrawTitle: 'Draw your field boundaries', fieldPickTitle: 'Pick the field location',
+    fieldSearchPlaceholder: 'City or town name…', fieldSearchBtn: 'Search', fieldLocate: 'My location',
+    fieldHintDraw: 'Zoom in until you see the field, then use the drawing tool on the left (polygon or rectangle), and confirm.',
+    fieldHintPick: 'Zoom in and click the map to set the field location, then confirm.',
+    fieldInfoDefault: 'Nothing set yet.', fieldClear: 'Clear', fieldConfirm: 'Confirm & analyze',
+    geoNotFound: 'Place not found, try another name.', geoMoved: 'Map moved to ', geoSearchFail: 'Search failed, move the map manually.',
+    fieldAreaInfo: 'Area: ', fieldPointsInfo: ' ha · Points: ', fieldLocationInfo: 'Location: ', locatingYou: 'Locating you…',
+    youAreHere: 'This is your location — now draw the field boundaries.', locateFail: 'Could not locate you, search by name.',
+    alertPickLocation: 'Click the map to set the location.', alertDrawField: 'Draw the field boundaries first using the tool on the left.',
+    fieldRedirectMsg: 'To analyze your field:\n1. Locate it on the satellite map that just opened.\n2. Zoom in and draw the boundaries.\n3. Confirm to get the latest image and indicators.',
+    fieldDrawMsg: 'Draw your field boundaries on the map, and we\'ll analyze it with the latest available image.',
+    noAnswer: 'No clear answer, try rephrasing.', connError: 'Connection error: ', rateLimited: 'Rate limit reached. Wait 60 seconds.', waitSeconds: 'Wait ',
+    weatherCard: 'Weather — ', selectedLocation: 'the selected location', wDay: 'Day', wMax: 'Max', wMin: 'Min', wRain: 'Rain mm', wEt0: 'ET₀ mm',
+    irrigationCard: 'Irrigation plan — ', irrigAvgEt0: 'Avg ET₀', irrigAvgNeed: 'Avg need mm', irrigAvgM3: 'm³/ha/day', irrigDay: 'Day', irrigNeed: 'Need mm',
+    soilCard: 'Soil analysis', soilProperty: 'Property', soilValue: 'Value',
+    climateCard: 'Climate summary — last 30 days', climateIndicator: 'Indicator', climateAvg: 'Average',
+    satelliteCard: 'Field analysis — Sentinel-2 L2A', ndviAvg: 'Avg NDVI', ndmiLbl: 'NDMI', areaLbl: 'Area', pixelCount: 'Pixel count',
+    insufficientData: 'Insufficient data — often due to clouds.', latestImage: 'Latest available image from ', naturalColor: '(natural color):', sameDateNdvi: 'Same date, NDVI index:',
+    otherDates: 'Other available dates:', weatherSameField: 'Weather on the same field:', soilSameField: 'Soil (incl. pH):', climateSummary30: '30-day climate summary:',
+    fSoilPh: 'pH', fSoilClay: 'Clay %', fSoilSand: 'Sand %', fSoilSilt: 'Silt %', fSoilSoc: 'Organic carbon', fSoilCec: 'CEC', fSoilN: 'Nitrogen',
+    followupWeather: '+ Weather', followupSoil: 'Soil & pH', followupClimate: '30-day climate', followupIrrigation: 'Irrigation plan', followupFull: 'Full analysis',
+  }
+};
+let currentLang = 'fr';
+function t(key){ return (LANG[currentLang] && LANG[currentLang][key]) ?? (LANG.fr[key] ?? key); }
+
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const attachBtn = document.getElementById('attachBtn');
+const fileInput = document.getElementById('fileInput');
+const imagePreview = document.getElementById('imagePreview');
+const previewImg = document.getElementById('previewImg');
+const removeImageBtn = document.getElementById('removeImage');
+const themeToggle = document.getElementById('themeToggle');
+const clearChat = document.getElementById('clearChat');
+const newChat = document.getElementById('newChat');
+const sideTheme = document.getElementById('sideTheme');
+const sideThemeIcon = document.getElementById('sideThemeIcon');
+const toastEl = document.getElementById('toast');
+
+const authOverlay = document.getElementById('authOverlay');
+const authTitle = document.getElementById('authTitle');
+const authSub = document.getElementById('authSub');
+const authSignupFields = document.getElementById('authSignupFields');
+const authFullName = document.getElementById('authFullName');
+const usageTypeOptions = document.getElementById('usageTypeOptions');
+const authEmail = document.getElementById('authEmail');
+const authPassword = document.getElementById('authPassword');
+const authSubmit = document.getElementById('authSubmit');
+const authError = document.getElementById('authError');
+const authSwitchText = document.getElementById('authSwitchText');
+const authSwitchLink = document.getElementById('authSwitchLink');
+const userEmailEl = document.getElementById('userEmail');
+const logoutBtn = document.getElementById('logoutBtn');
+const sessionsListEl = document.getElementById('sessionsList');
+const sessionsOverlay = document.getElementById('sessionsOverlay');
+const sessionsListModal = document.getElementById('sessionsListModal');
+const closeSessionsBtn = document.getElementById('closeSessionsBtn');
+const confirmOverlay = document.getElementById('confirmOverlay');
+const confirmCancel = document.getElementById('confirmCancel');
+const confirmDelete = document.getElementById('confirmDelete');
+
+let conversationHistory = [];
+let pendingImageBase64 = null;
+let isDark = true;
+let authMode = 'login';
+let selectedUsageType = null;
+let currentSessionId = null;
+let sessionPendingDelete = null;
+
+// === اختيار نوع الاستخدام عند إنشاء الحساب ===
+usageTypeOptions.querySelectorAll('.usage-chip').forEach((chip) => {
+  chip.addEventListener('click', () => {
+    selectedUsageType = chip.dataset.value;
+    usageTypeOptions.querySelectorAll('.usage-chip').forEach((c) => c.classList.toggle('active', c === chip));
+  });
+});
+
+// === Toast ===
+let toastTimer = null;
+function showToast(text){
+  toastEl.innerHTML = icon('check') + '<span>' + escapeHtml(text) + '</span>';
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+}
+
+// === Theme Toggle ===
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  themeToggle.innerHTML = isDark ? icon('moon') : icon('sun');
+  sideThemeIcon.innerHTML = isDark ? icon('moon') : icon('sun');
+}
+themeToggle.addEventListener('click', () => { isDark = !isDark; applyTheme(); });
+sideTheme.addEventListener('click', () => { isDark = !isDark; applyTheme(); });
+newChat.addEventListener('click', resetChat);
+clearChat.addEventListener('click', resetChat);
+applyTheme();
+
+// === تبديل اللغة (FR افتراضي / AR / EN) ===
+const langSwitch = document.getElementById('langSwitch');
+function applyLanguage(lang) {
+  currentLang = LANG[lang] ? lang : 'fr';
+  const L = LANG[currentLang];
+  document.documentElement.setAttribute('lang', currentLang);
+  document.documentElement.setAttribute('dir', L.dir);
+  document.querySelector('.app-shell').style.direction = L.dir;
+
+  const setText = (id, key) => { const el = document.getElementById(id); if (el) el.textContent = t(key); };
+  setText('txtNewChat', 'newChat');
+  setText('txtNavAssistant', 'navAssistant');
+  setText('txtNavPlant', 'navPlant');
+  setText('txtNavWeather', 'navWeather');
+  setText('txtNavField', 'navField');
+  setText('txtHistoryTitle', 'historyTitle');
+  setText('txtTheme', 'theme');
+  setText('txtFreeAccount', 'freeAccount');
+  setText('txtLive', 'live');
+  setText('txtStatusBar', 'statusBar');
+  setText('txtWelcomeKicker', 'welcomeKicker');
+  setText('txtWelcomeTitle', 'welcomeTitle');
+  setText('txtWelcomeText', 'welcomeText');
+  setText('txtChipSatellite', 'chipSatellite');
+  setText('txtChipWeather', 'chipWeather');
+  setText('txtChipSoil', 'chipSoil');
+  setText('txtChipIrrigation', 'chipIrrigation');
+  setText('txtImagePreview', 'imagePreview');
+  setText('txtInputHint', 'inputHint');
+  setText('txtUsageTypeLabel', 'usageTypeLabel');
+  setText('usageChipCommercial', 'usageCommercial');
+  setText('usageChipStudent', 'usageStudent');
+  setText('usageChipOther', 'usageOther');
+  setText('txtSessionsModalTitle', 'sessionsModalTitle');
+  setText('closeSessionsBtn', 'close');
+  setText('txtDeleteTitle', 'deleteTitle');
+  setText('txtDeleteText', 'deleteText');
+  setText('confirmCancel', 'cancel');
+  setText('confirmDelete', 'delete');
+  setText('fieldSearchBtn', 'fieldSearchBtn');
+  setText('txtFieldLocate', 'fieldLocate');
+  setText('fieldClear', 'fieldClear');
+  setText('fieldConfirm', 'fieldConfirm');
+
+  inputEl.placeholder = t('inputPlaceholder');
+  authFullName.placeholder = t('fullNamePlaceholder');
+  authEmail.placeholder = t('emailPlaceholder');
+  authPassword.placeholder = t('passwordPlaceholder');
+  document.getElementById('fieldSearch').placeholder = t('fieldSearchPlaceholder');
+
+  // إعادة تطبيق نص شاشة الدخول/التسجيل حسب الوضع الحالي
+  setAuthMode(authMode);
+
+  // إعادة نص نافذة رسم الحقل حسب الوضع الحالي (رسم أو تحديد نقطة)
+  if (!fieldModal.classList.contains('hidden')) openFieldModal(fieldMode);
+
+  langSwitch.querySelectorAll('.lang-btn').forEach((b) => b.classList.toggle('active', b.dataset.lang === currentLang));
+}
+langSwitch.querySelectorAll('.lang-btn').forEach((btn) => {
+  btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+});
+
+// === Mobile Sidebar Drawer ===
+const sidebarEl = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const mobileSidebarBtn = document.getElementById('mobileSidebarBtn');
+const sidebarCloseBtn = document.getElementById('sidebarClose');
+
+function openSidebar() {
+  sidebarEl.classList.add('open');
+  sidebarBackdrop.classList.add('active');
+}
+function closeSidebar() {
+  sidebarEl.classList.remove('open');
+  sidebarBackdrop.classList.remove('active');
+}
+mobileSidebarBtn.addEventListener('click', openSidebar);
+sidebarCloseBtn.addEventListener('click', closeSidebar);
+sidebarBackdrop.addEventListener('click', closeSidebar);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSidebar(); });
+// سد المنيو أوتوماتيك بعد أي اختيار فالموبايل
+sidebarEl.addEventListener('click', (e) => {
+  if (window.innerWidth > 700) return;
+  const target = e.target.closest('.new-chat, .session-title, .side-item');
+  if (target) closeSidebar();
+});
+
+function resetChat() {
+  messagesEl.innerHTML = '<div class="chat-inner"></div>';
+  conversationHistory = [];
+  currentSessionId = null;
+  currentGeometry = null;
+  currentPoint = null;
+  markActiveSession(null);
+  addWelcomeCard();
+}
+
+function addWelcomeCard() {
+  const card = document.createElement('div');
+  card.className = 'welcome-card';
+  card.innerHTML = `
+    <div class="welcome-kicker">${escapeHtml(t('welcomeKicker'))}</div>
+    <h2>${escapeHtml(t('welcomeTitle'))}</h2>
+    <p>${escapeHtml(t('welcomeText'))}</p>
+    <div class="quick-actions">
+      <button class="quick-chip" data-text="بغيت نحلل الضيعة ديالي بالأقمار الصناعية">${icon('satellite')}<span>${escapeHtml(t('chipSatellite'))}</span></button>
+      <button class="quick-chip" data-text="شنو حالة الطقس ديال الضيعة ديالي؟">${icon('weather')}<span>${escapeHtml(t('chipWeather'))}</span></button>
+      <button class="quick-chip" data-text="بغيت نحلل التربة ديال الحقل ديالي">${icon('soil')}<span>${escapeHtml(t('chipSoil'))}</span></button>
+      <button class="quick-chip" data-text="كيفاش ندير الري بالتنقيط؟">${icon('irrigation')}<span>${escapeHtml(t('chipIrrigation'))}</span></button>
+    </div>
+  `;
+  const inner = messagesEl.querySelector('.chat-inner');
+  inner.appendChild(card);
+  bindQuickChips();
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function bindQuickChips() {
+  document.querySelectorAll('.quick-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const txt = chip.dataset.text || '';
+      if (wantsFieldAnalysis(txt) && !currentGeometry) {
+        addMessage(txt, 'user');
+        conversationHistory.push({ role: 'user', content: txt });
+        renderAnswer(t('fieldDrawMsg'));
+        openFieldModal('draw_field');
+        return;
+      }
+      inputEl.value = txt;
+      inputEl.focus();
+    });
+  });
+}
+
+function getTimeString() {
+  const now = new Date();
+  return now.toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' });
+}
+
+function addMessage(text, type, imageDataUrl) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg-wrapper ' + type;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  if (type === 'user') avatar.innerHTML = icon('user'); else setBotAvatar(avatar);
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+
+  if (imageDataUrl) {
+    const img = document.createElement('img');
+    img.src = imageDataUrl;
+    bubble.appendChild(img);
+  }
+  if (text) {
+    const p = document.createElement('div');
+    p.textContent = text;
+    bubble.appendChild(p);
+  }
+
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = getTimeString();
+  bubble.appendChild(time);
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(bubble);
+  messagesEl.querySelector('.chat-inner').appendChild(wrapper);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return wrapper;
+}
+
+function showTyping() {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'typing-wrapper';
+  wrapper.id = 'typingIndicator';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  setBotAvatar(avatar);
+
+  const bubble = document.createElement('div');
+  bubble.className = 'typing-bubble';
+  bubble.innerHTML = '<span></span><span></span><span></span>';
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(bubble);
+  messagesEl.querySelector('.chat-inner').appendChild(wrapper);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+attachBtn.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    pendingImageBase64 = reader.result;
+    previewImg.src = pendingImageBase64;
+    imagePreview.classList.add('active');
+  };
+  reader.readAsDataURL(file);
+});
+
+removeImageBtn.addEventListener('click', () => {
+  pendingImageBase64 = null;
+  fileInput.value = '';
+  imagePreview.classList.remove('active');
+});
+
+// === Helpers ===
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function addCard(html) {
+  const div = document.createElement('div');
+  div.className = 'service-card';
+  div.innerHTML = html;
+  messagesEl.querySelector('.chat-inner').appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
+}
+
+// === نافذة رسم الحقل فوق صور الأقمار الصناعية ===
+
+let fMap = null, fItems = null, fMarker = null;
+let drawnGeometry = null, pickedPoint = null, fieldMode = 'draw_field';
+let currentGeometry = null, currentPoint = null;
+
+const fieldModal = document.getElementById('fieldModal');
+const fieldTitle = document.getElementById('fieldTitle');
+const fieldHint = document.getElementById('fieldHint');
+const fieldInfo = document.getElementById('fieldInfo');
+const fieldSearch = document.getElementById('fieldSearch');
+const fieldSearchBtn = document.getElementById('fieldSearchBtn');
+const fieldLocate = document.getElementById('fieldLocate');
+const fieldClose = document.getElementById('fieldClose');
+const fieldClear = document.getElementById('fieldClear');
+const fieldConfirm = document.getElementById('fieldConfirm');
+
+function areaHaOf(geom) {
+  const pts = geom.coordinates[0];
+  if (pts.length < 4) return 0;
+  const lat0 = Number(pts[0][1]);
+  const mLat = 111320, mLng = 111320 * Math.cos(lat0 * Math.PI / 180);
+  let a = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    a += (pts[i][0] * mLng) * (pts[i + 1][1] * mLat) - (pts[i + 1][0] * mLng) * (pts[i][1] * mLat);
+  }
+  return Math.abs(a) / 2 / 10000;
+}
+
+function centroidOf(geom) {
+  const pts = geom.coordinates[0];
+  const n = pts.length - 1;
+  let sx = 0, sy = 0;
+  for (let i = 0; i < n; i++) { sx += Number(pts[i][0]); sy += Number(pts[i][1]); }
+  return { lat: sy / n, lng: sx / n };
+}
+
+function initFieldMap() {
+  fMap = L.map('fieldMap', { zoomControl: true }).setView([31.7917, -7.0926], 6);
+
+  const imagery = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { maxZoom: 19, attribution: 'Imagery © Esri, Maxar, Earthstar Geographics' }
+  ).addTo(fMap);
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+    { maxZoom: 19, opacity: .9 }
+  ).addTo(fMap);
+  const plain = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '© OpenStreetMap, © CARTO' });
+  L.control.layers({ 'أقمار صناعية': imagery, 'خريطة عادية': plain }, null, { position: 'topright' }).addTo(fMap);
+
+  fItems = new L.FeatureGroup();
+  fMap.addLayer(fItems);
+  fMap.addControl(new L.Control.Draw({
+    position: 'topleft',
+    draw: { polygon: { allowIntersection: false, showArea: false }, rectangle: true, polyline: false, circle: false, marker: false, circlemarker: false },
+    edit: { featureGroup: fItems }
+  }));
+
+  function setGeom(layer) {
+    drawnGeometry = layer.toGeoJSON().geometry;
+    fieldInfo.textContent = t('fieldAreaInfo') + areaHaOf(drawnGeometry).toFixed(2) + t('fieldPointsInfo') + (drawnGeometry.coordinates[0].length - 1);
+  }
+
+  fMap.on(L.Draw.Event.CREATED, (e) => { fItems.clearLayers(); fItems.addLayer(e.layer); setGeom(e.layer); });
+  fMap.on(L.Draw.Event.EDITED, () => { const ls = fItems.getLayers(); if (ls.length) setGeom(ls[0]); });
+  fMap.on(L.Draw.Event.DELETED, () => { drawnGeometry = null; fieldInfo.textContent = t('fieldInfoDefault'); });
+
+  fMap.on('click', (e) => {
+    if (fieldMode !== 'pick_location') return;
+    pickedPoint = { lat: e.latlng.lat, lng: e.latlng.lng };
+    if (fMarker) fMarker.remove();
+    fMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(fMap);
+    fieldInfo.textContent = t('fieldLocationInfo') + pickedPoint.lat.toFixed(5) + ', ' + pickedPoint.lng.toFixed(5);
+  });
+}
+
+function openFieldModal(mode) {
+  fieldMode = mode === 'pick_location' ? 'pick_location' : 'draw_field';
+  const isPoint = fieldMode === 'pick_location';
+  fieldTitle.querySelector('span').textContent = isPoint ? t('fieldPickTitle') : t('fieldDrawTitle');
+  fieldHint.textContent = isPoint ? t('fieldHintPick') : t('fieldHintDraw');
+  fieldInfo.textContent = t('fieldInfoDefault');
+  drawnGeometry = null; pickedPoint = null;
+  fieldModal.classList.remove('hidden');
+  if (!fMap) initFieldMap();
+  if (fItems) fItems.clearLayers();
+  if (fMarker) { fMarker.remove(); fMarker = null; }
+  setTimeout(() => fMap.invalidateSize(), 160);
+}
+
+function closeFieldModal() { fieldModal.classList.add('hidden'); }
+
+fieldClose.addEventListener('click', closeFieldModal);
+fieldModal.addEventListener('click', (e) => { if (e.target === fieldModal) closeFieldModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !fieldModal.classList.contains('hidden')) closeFieldModal(); });
+
+fieldClear.addEventListener('click', () => {
+  if (fItems) fItems.clearLayers();
+  if (fMarker) { fMarker.remove(); fMarker = null; }
+  drawnGeometry = null; pickedPoint = null;
+  fieldInfo.textContent = 'ماشي محدد بعد.';
+});
+
+fieldConfirm.addEventListener('click', () => {
+  if (drawnGeometry) {
+    currentGeometry = drawnGeometry;
+    currentPoint = centroidOf(drawnGeometry);
+    closeFieldModal();
+    sendRequest('هذه هي حدود ضيعتي، حللها بالأقمار الصناعية وعطيني آخر صورة متوفرة.', { geometry: currentGeometry });
+    return;
+  }
+  if (pickedPoint) {
+    currentPoint = pickedPoint;
+    closeFieldModal();
+    sendRequest('استعمل هاد الموقع', { lat: pickedPoint.lat, lng: pickedPoint.lng });
+    return;
+  }
+  alert(fieldMode === 'pick_location' ? t('alertPickLocation') : t('alertDrawField'));
+});
+
+fieldLocate.addEventListener('click', () => {
+  if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+  fieldInfo.textContent = t('locatingYou');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => { fMap.setView([pos.coords.latitude, pos.coords.longitude], 17); fieldInfo.textContent = t('youAreHere'); },
+    () => { fieldInfo.textContent = t('locateFail'); },
+    { enableHighAccuracy: true, timeout: 9000 }
+  );
+});
+
+async function runGeoSearch() {
+  const q = fieldSearch.value.trim();
+  if (!q) return;
+  fieldSearchBtn.disabled = true;
+  try {
+    const res = await fetch(GEOCODE_URL + '?q=' + encodeURIComponent(q));
+    const data = await res.json();
+    const list = (data && data.results) || [];
+    if (!list.length) { fieldInfo.textContent = t('geoNotFound'); return; }
+    fMap.setView([list[0].lat, list[0].lng], 15);
+    fieldInfo.textContent = t('geoMoved') + list[0].name;
+  } catch (e) {
+    fieldInfo.textContent = t('geoSearchFail');
+  } finally {
+    fieldSearchBtn.disabled = false;
+  }
+}
+fieldSearchBtn.addEventListener('click', runGeoSearch);
+fieldSearch.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); runGeoSearch(); } });
+
+// كشف نية تحليل الضيعة محلياً باش النافذة تطلع مباشرة
+function wantsFieldAnalysis(text) {
+  const t = String(text || '');
+  const act = /(حلل|تحليل|نحلل|شوف|فحص|قيس|analy|scan|diagnos)/i.test(t);
+  const obj = /(ضيع|حقل|أرض|الارض|الأرض|محصول|زرع|غرس|قمر|أقمار|اقمار|satellite|ndvi|field|farm|parcelle|تربة|التربة)/i.test(t);
+  return act && obj;
+}
+
+// === Result renderers (من trace ديال الوكيل الجديد) ===
+
+function soilLabels(){ return { phh2o: t('fSoilPh'), clay: t('fSoilClay'), sand: t('fSoilSand'), silt: t('fSoilSilt'), soc: t('fSoilSoc'), cec: 'CEC', nitrogen: t('fSoilN') }; }
+
+function weatherTable(daily) {
+  const rows = (daily || []).slice(0, 7).map((d) =>
+    '<tr><td>' + escapeHtml(String(d.date || '').slice(5)) + '</td><td>' + (d.tmax ?? '-') + '°</td><td>' + (d.tmin ?? '-') + '°</td><td>' + (d.precip_mm ?? '-') + '</td><td>' + (d.et0_mm ?? '-') + '</td></tr>'
+  ).join('');
+  return '<table class="data-table"><tr><th>' + t('wDay') + '</th><th>' + t('wMax') + '</th><th>' + t('wMin') + '</th><th>' + t('wRain') + '</th><th>' + t('wEt0') + '</th></tr>' + rows + '</table>';
+}
+
+function soilTable(soil) {
+  const labels = soilLabels();
+  return '<table class="data-table"><tr><th>' + t('soilProperty') + '</th><th>' + t('soilValue') + '</th></tr>' +
+    Object.keys(soil).map((k) => '<tr><td>' + escapeHtml(labels[k] || k) + '</td><td><strong>' + escapeHtml(String(soil[k].value)) + '</strong> ' + escapeHtml(String(soil[k].unit || '')) + '</td></tr>').join('') +
+    '</table>';
+}
+
+function renderWeatherCard(r) {
+  addCard('<div class="card-head">' + icon('weather') + '<span>' + t('weatherCard') + escapeHtml((r.location && r.location.place) || t('selectedLocation')) + '</span></div>' +
+    '<div class="card-body">' + weatherTable(r.daily) + '</div>');
+}
+
+function renderIrrigationCard(r) {
+  const rows = (r.plan || []).map((x, i) => {
+    const date = r.dates && r.dates[i] ? String(r.dates[i]).slice(5) : '+' + x.day_offset;
+    return '<tr><td>' + escapeHtml(date) + '</td><td>' + x.et0_mm + '</td><td><strong>' + x.gross_mm + '</strong></td><td><strong>' + x.m3_per_ha + '</strong></td></tr>';
+  }).join('');
+  addCard('<div class="card-head">' + icon('irrigation') + '<span>' + t('irrigationCard') + escapeHtml((r.crop && (r.crop.darija || r.crop.en)) || '') + '</span></div><div class="card-body">' +
+    '<div class="result-grid">' +
+    '<div class="result-stat"><div class="stat-label">Kc</div><div class="stat-value">' + r.kc + '</div></div>' +
+    '<div class="result-stat"><div class="stat-label">' + t('irrigAvgEt0') + '</div><div class="stat-value">' + r.avg_et0_mm + '</div></div>' +
+    '<div class="result-stat"><div class="stat-label">' + t('irrigAvgNeed') + '</div><div class="stat-value">' + r.avg_gross_mm + '</div></div>' +
+    '<div class="result-stat"><div class="stat-label">' + t('irrigAvgM3') + '</div><div class="stat-value">' + r.avg_m3_per_ha + '</div></div></div>' +
+    '<table class="data-table"><tr><th>' + t('irrigDay') + '</th><th>ET₀</th><th>' + t('irrigNeed') + '</th><th>م³/ha</th></tr>' + rows + '</table></div>');
+}
+
+function renderSoilCard(r) {
+  addCard('<div class="card-head">' + icon('soil') + '<span>' + t('soilCard') + '</span></div><div class="card-body">' + soilTable(r.soil) +
+    '<p style="margin-top:10px">' + escapeHtml(r.note || '') + '</p></div>');
+}
+
+function renderClimateCard(r) {
+  const sum = r.summary || {};
+  addCard('<div class="card-head">' + icon('climate') + '<span>' + t('climateCard') + '</span></div><div class="card-body"><table class="data-table"><tr><th>' + t('climateIndicator') + '</th><th>' + t('climateAvg') + '</th></tr>' +
+    Object.keys(sum).map((k) => '<tr><td>' + escapeHtml(k) + '</td><td>' + escapeHtml(String(sum[k].avg)) + '</td></tr>').join('') + '</table></div>');
+}
+
+function renderSatelliteCard(r) {
+  let body;
+  if (r.ndvi && r.ndvi.available) {
+    body = '<div class="result-grid">' +
+      '<div class="result-stat"><div class="stat-label">' + t('ndviAvg') + '</div><div class="stat-value">' + r.ndvi.overallMean + '</div></div>' +
+      '<div class="result-stat"><div class="stat-label">' + t('ndmiLbl') + '</div><div class="stat-value">' + (r.ndmi && r.ndmi.available ? r.ndmi.overallMean : '-') + '</div></div>' +
+      '<div class="result-stat"><div class="stat-label">' + t('areaLbl') + '</div><div class="stat-value">' + (r.area_ha ?? '-') + ' ha</div></div>' +
+      '<div class="result-stat"><div class="stat-label">' + t('pixelCount') + '</div><div class="stat-value">' + r.ndvi.samples + '</div></div></div>';
+  } else {
+    body = '<p>' + icon('warn') + ' ' + escapeHtml((r.ndvi && r.ndvi.reason) || t('insufficientData')) + '</p>';
+  }
+
+  let imgs = '';
+  if (r.latest_image) {
+    imgs += '<p style="margin-top:12px">' + icon('satellite') + ' ' + t('latestImage') + '<strong>' + escapeHtml(r.latest_image.date) + '</strong> ' + t('naturalColor') + '</p>';
+    if (r.latest_image.true_color_url) imgs += '<img class="sat-map-img" loading="lazy" src="' + escapeHtml(r.latest_image.true_color_url) + '" alt="satellite image">';
+    if (r.latest_image.ndvi_url) {
+      imgs += '<p style="margin-top:12px">' + t('sameDateNdvi') + '</p><img class="sat-map-img" loading="lazy" src="' + escapeHtml(r.latest_image.ndvi_url) + '" alt="NDVI">';
+    }
+  } else if (r.map_url) {
+    imgs += '<img class="sat-map-img" src="' + escapeHtml(r.map_url) + '" alt="NDVI">';
+  }
+
+  let gallery = '';
+  if (Array.isArray(r.per_date_images) && r.per_date_images.length > 1) {
+    gallery = '<p style="margin-top:12px">' + t('otherDates') + '</p><div class="date-gallery">' +
+      r.per_date_images.slice(-8).map((d) =>
+        '<div class="date-item">' + (d.true_color_url ? '<img loading="lazy" src="' + escapeHtml(d.true_color_url) + '">' : '') +
+        '<div class="lbl">' + escapeHtml(String(d.date).slice(0, 10)) + ' · NDVI ' + Number(d.ndvi_mean).toFixed(2) + '</div></div>'
+      ).join('') + '</div>';
+  }
+
+  let extra = '';
+  if (r.weather && r.weather.daily) extra += '<p style="margin-top:12px">' + t('weatherSameField') + '</p>' + weatherTable(r.weather.daily);
+  if (r.soil && !r.soil.error) extra += '<p style="margin-top:12px">' + t('soilSameField') + '</p>' + soilTable(r.soil);
+  if (r.climate && !r.climate.error) {
+    extra += '<p style="margin-top:12px">' + t('climateSummary30') + '</p><table class="data-table"><tr><th>' + t('climateIndicator') + '</th><th>' + t('climateAvg') + '</th></tr>' +
+      Object.keys(r.climate).map((k) => '<tr><td>' + escapeHtml(k) + '</td><td>' + escapeHtml(String(r.climate[k].avg)) + '</td></tr>').join('') + '</table>';
+  }
+
+  addCard('<div class="card-head">' + icon('satellite') + '<span>' + t('satelliteCard') + '</span></div><div class="card-body">' + body + imgs + gallery + extra +
+    '<p style="margin-top:12px">' + escapeHtml(r.note || '') + '</p></div>');
+}
+
+function renderToolResult(t) {
+  const r = t.result;
+  if (!r || r.ok === false || r.needs_action) return;
+  if (t.tool === 'get_weather' && r.daily) renderWeatherCard(r);
+  if (t.tool === 'get_irrigation_plan' && r.plan) renderIrrigationCard(r);
+  if (t.tool === 'get_soil_analysis' && r.soil) renderSoilCard(r);
+  if (t.tool === 'get_climate_history' && r.summary) renderClimateCard(r);
+  if (t.tool === 'analyze_satellite_field' && r.ndvi) renderSatelliteCard(r);
+}
+
+// === جواب منظم بلا نجوم ولا رموز ماركداون ===
+
+function renderAnswer(text) {
+  const clean = String(text || '')
+    .replace(/\*\*/g, '').replace(/\*/g, '')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/^\s*[-•]\s+/gm, '– ')
+    .replace(/`/g, '')
+    .trim();
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg-wrapper bot';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  setBotAvatar(avatar);
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+
+  clean.split(/\n+/).forEach((line) => {
+    const l = line.trim();
+    if (!l) return;
+    const el = document.createElement('div');
+    if (/:$/.test(l) && l.length < 60) el.className = 'ln hd';
+    else if (/^(\d+[\.\)]|–)/.test(l)) el.className = 'ln li';
+    else el.className = 'ln';
+    el.textContent = l;
+    bubble.appendChild(el);
+  });
+
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = getTimeString();
+  bubble.appendChild(time);
+
+  const actions = document.createElement('div');
+  actions.className = 'msg-actions';
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'msg-action-btn';
+  copyBtn.title = 'نسخ';
+  copyBtn.innerHTML = icon('copy');
+  copyBtn.addEventListener('click', () => copyText(clean));
+  actions.appendChild(copyBtn);
+  bubble.appendChild(actions);
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(bubble);
+  messagesEl.querySelector('.chat-inner').appendChild(wrapper);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function addFollowups(items) {
+  const box = document.createElement('div');
+  box.className = 'followups';
+  items.forEach((it) => {
+    const b = document.createElement('button');
+    b.className = 'quick-chip';
+    b.innerHTML = (it.icon ? icon(it.icon) : '') + '<span>' + escapeHtml(it.label) + '</span>';
+    b.addEventListener('click', () => sendRequest(it.prompt));
+    box.appendChild(b);
+  });
+  messagesEl.querySelector('.chat-inner').appendChild(box);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(t('copySuccess'));
+  } catch {
+    showToast(t('copyFail'));
+  }
+}
+
+// === Core request / response handling ===
+
+function handleResponse(data) {
+  if (data.session_id) currentSessionId = data.session_id;
+
+  if (data.answer) {
+    renderAnswer(data.answer);
+    conversationHistory.push({ role: 'assistant', content: data.answer });
+  }
+
+  (data.trace || []).forEach(renderToolResult);
+
+  const quick = (data.trace || []).find((t) => t.tool === 'analyze_satellite_field' && t.result && t.result.ok && t.result.mode === 'quick');
+  if (quick) {
+    addFollowups([
+      { icon: 'weather', label: t('followupWeather'), prompt: 'زيدني الطقس ديال 7 أيام لنفس الحقل' },
+      { icon: 'soil', label: t('followupSoil'), prompt: 'عطيني نوع التربة والحموضة pH لنفس الحقل' },
+      { icon: 'climate', label: t('followupClimate'), prompt: 'عطيني الملخص المناخي ديال آخر 30 يوم لنفس الحقل' },
+      { icon: 'irrigation', label: t('followupIrrigation'), prompt: 'حسب ليا خطة السقي لنفس الحقل' },
+      { icon: 'satellite', label: t('followupFull'), prompt: 'دير تحليل شامل mode full لنفس الحقل: صورة + مؤشرات + طقس + تربة + مناخ' }
+    ]);
+  }
+
+  if (data.ui_action === 'draw_field' || data.ui_action === 'pick_location') {
+    openFieldModal(data.ui_action);
+    return;
+  }
+
+  if (!data.answer && !(data.trace || []).length) {
+    addMessage(t('noAnswer'), 'bot');
+  }
+}
+
+async function getAccessToken() {
+  const s = await supabase.auth.getSession();
+  return s.data.session ? s.data.session.access_token : null;
+}
+
+async function sendRequest(text, extra = {}, imageToSend = null) {
+  const token = await getAccessToken();
+  if (!token) { openAuth('login'); return; }
+
+  // كنحفظو الحقل/الموقع ونعاودو نصيفطوه مع أسئلة المتابعة
+  if (extra.geometry) { currentGeometry = extra.geometry; currentPoint = centroidOf(extra.geometry); }
+  if (extra.lat != null && extra.lng != null) currentPoint = { lat: extra.lat, lng: extra.lng };
+
+  const payloadExtra = {};
+  if (extra.geometry || currentGeometry) payloadExtra.geometry = extra.geometry || currentGeometry;
+  const plat = extra.lat != null ? extra.lat : (currentPoint ? currentPoint.lat : null);
+  const plng = extra.lng != null ? extra.lng : (currentPoint ? currentPoint.lng : null);
+  if (plat != null && plng != null) { payloadExtra.lat = plat; payloadExtra.lng = plng; }
+
+  addMessage(text, 'user', imageToSend);
+  if (imageToSend) {
+    const imgNotice = { fr: "L'analyse directe d'images n'est pas encore disponible sur ce serveur, seul le texte est envoyé.", ar: 'تحليل الصور مباشرة ماشي متوفر حالياً فهاد السيرفر، كنبعتو غير النص المرفق.', en: 'Direct image analysis is not yet available on this server — only the text is sent.' };
+    addMessage(imgNotice[currentLang] || imgNotice.fr, 'error');
+  }
+  conversationHistory.push({ role: 'user', content: text });
+
+  sendBtn.disabled = true;
+  showTyping();
+
+  try {
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({
+        message: text,
+        messages: conversationHistory.slice(-8),
+        session_id: currentSessionId,
+        ...payloadExtra
+      })
+    });
+
+    if (response.status === 401) {
+      hideTyping();
+      openAuth('login');
+      sendBtn.disabled = false;
+      return;
+    }
+
+    const data = await response.json().catch(() => ({}));
+    hideTyping();
+
+    if (response.status === 429) {
+      addMessage(t('rateLimited'), 'error');
+      sendBtn.disabled = true;
+      let left = 60;
+      const tick = setInterval(() => {
+        left--;
+        sendBtn.title = t('waitSeconds') + left;
+        if (left <= 0) { clearInterval(tick); sendBtn.disabled = false; sendBtn.title = ''; }
+      }, 1000);
+      return;
+    }
+
+    if (!response.ok || data.success === false) {
+      const msg = data?.error || ('Server error (' + response.status + ')');
+      addMessage(msg + (data?.details ? ' — ' + data.details : ''), 'error');
+      sendBtn.disabled = false;
+      return;
+    }
+
+    handleResponse(data);
+    refreshSessions();
+
+  } catch (err) {
+    hideTyping();
+    addMessage(t('connError') + err.message, 'error');
+  }
+
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
+
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  const imageToSend = pendingImageBase64;
+
+  if (!text && !imageToSend) return;
+
+  inputEl.value = '';
+  pendingImageBase64 = null;
+  fileInput.value = '';
+  imagePreview.classList.remove('active');
+
+  const finalText = text || 'شنو هاد المرض فهاد النبتة؟';
+
+  // إلا طلب تحليل الضيعة وماعندناش الحدود ديالها → نافذة الخريطة كتطلع مباشرة
+  if (!imageToSend && wantsFieldAnalysis(finalText) && !currentGeometry) {
+    addMessage(finalText, 'user');
+    conversationHistory.push({ role: 'user', content: finalText });
+    renderAnswer(t('fieldRedirectMsg'));
+    openFieldModal('draw_field');
+    return;
+  }
+
+  await sendRequest(finalText, {}, imageToSend);
+}
+
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+// ---------------------------------------------------------------------------
+// المصادقة (Supabase Auth)
+// ---------------------------------------------------------------------------
+
+function openAuth(mode) {
+  setAuthMode(mode);
+  authOverlay.classList.remove('hidden');
+}
+
+function resetSignupFields() {
+  authFullName.value = '';
+  selectedUsageType = null;
+  usageTypeOptions.querySelectorAll('.usage-chip').forEach((c) => c.classList.remove('active'));
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  authError.textContent = '';
+  authError.style.color = 'var(--danger)';
+  if (mode === 'signup') {
+    authTitle.textContent = t('authSignupTitle');
+    authSub.textContent = t('authSignupSub');
+    authSubmit.textContent = t('signupBtn');
+    authSwitchText.textContent = t('haveAccount');
+    authSwitchLink.textContent = t('loginLink');
+    authSignupFields.classList.add('active');
+    authFullName.setAttribute('autocomplete', 'name');
+  } else {
+    authTitle.textContent = t('authLoginTitle');
+    authSub.textContent = t('authLoginSub');
+    authSubmit.textContent = t('loginBtn');
+    authSwitchText.textContent = t('noAccount');
+    authSwitchLink.textContent = t('signupLink');
+    authSignupFields.classList.remove('active');
+    resetSignupFields();
+  }
+}
+
+authSwitchLink.onclick = () => setAuthMode(authMode === 'login' ? 'signup' : 'login');
+
+authSubmit.onclick = async () => {
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+  const fullName = authFullName.value.trim();
+
+  if (!email || !password) { authError.textContent = t('fillEmailPassword'); return; }
+  if (authMode === 'signup') {
+    if (!fullName) { authError.textContent = t('fillFullName'); return; }
+    if (!selectedUsageType) { authError.textContent = t('chooseUsageType'); return; }
+  }
+
+  authSubmit.disabled = true;
+  authError.textContent = '';
+  try {
+    const res = authMode === 'signup'
+      ? await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName, usage_type: selectedUsageType } }
+        })
+      : await supabase.auth.signInWithPassword({ email, password });
+    if (res.error) throw res.error;
+    if (authMode === 'signup' && !res.data.session) {
+      authError.style.color = 'var(--green)';
+      authError.textContent = t('accountCreated');
+      setAuthMode('login');
+    } else {
+      onAuthenticated();
+    }
+  } catch (e) {
+    authError.style.color = 'var(--danger)';
+    authError.textContent = e.message || t('loginFailed');
+  } finally {
+    authSubmit.disabled = false;
+  }
+};
+
+logoutBtn.onclick = async () => {
+  await supabase.auth.signOut();
+  location.reload();
+};
+
+function onAuthenticated() {
+  authOverlay.classList.add('hidden');
+  authEmail.value = '';
+  authPassword.value = '';
+  resetSignupFields();
+  supabase.auth.getUser().then((r) => {
+    if (r.data && r.data.user) userEmailEl.textContent = r.data.user.email || 'مستخدم';
+  });
+  if (!messagesEl.querySelector('.msg-wrapper, .service-card')) addWelcomeCard();
+  refreshSessions();
+}
+
+supabase.auth.getSession().then((r) => {
+  if (r.data.session) { onAuthenticated(); } else { openAuth('login'); }
+});
+
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') location.reload();
+});
+
+// ---------------------------------------------------------------------------
+// المحادثات السابقة (عرض + حذف + مشاركة)
+// ---------------------------------------------------------------------------
+
+function markActiveSession(id) {
+  sessionsListEl.querySelectorAll('.session-row').forEach((row) => {
+    row.classList.toggle('active', row.dataset.id === id);
+  });
+}
+
+function buildSessionRow(s) {
+  const row = document.createElement('div');
+  row.className = 'session-row';
+  row.dataset.id = s.id;
+  row.title = new Date(s.updated_at).toLocaleString('ar-MA');
+
+  const title = document.createElement('span');
+  title.className = 'session-title';
+  title.textContent = s.title || { fr: 'Sans titre', ar: 'محادثة بلا عنوان', en: 'Untitled chat' }[currentLang] || 'Untitled chat';
+  title.addEventListener('click', () => loadSession(s.id));
+
+  const actions = document.createElement('div');
+  actions.className = 'session-actions';
+
+  const shareBtn = document.createElement('button');
+  shareBtn.className = 'session-action-btn';
+  shareBtn.title = 'مشاركة';
+  shareBtn.innerHTML = icon('share');
+  shareBtn.addEventListener('click', (e) => { e.stopPropagation(); shareSession(s.id, s.title); });
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'session-action-btn danger';
+  delBtn.title = 'حذف';
+  delBtn.innerHTML = icon('delete');
+  delBtn.addEventListener('click', (e) => { e.stopPropagation(); askDeleteSession(s.id); });
+
+  actions.appendChild(shareBtn);
+  actions.appendChild(delBtn);
+  row.appendChild(title);
+  row.appendChild(actions);
+  return row;
+}
+
+async function refreshSessions() {
+  const token = await getAccessToken();
+  if (!token) return;
+  try {
+    const res = await fetch(SESSIONS_URL, { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'خطأ');
+    if (!data.sessions.length) {
+      sessionsListEl.innerHTML = '<div class="side-empty">' + escapeHtml(t('noHistory')) + '</div>';
+      return;
+    }
+    sessionsListEl.innerHTML = '';
+    data.sessions.forEach((s) => sessionsListEl.appendChild(buildSessionRow(s)));
+    markActiveSession(currentSessionId);
+  } catch (e) {
+    sessionsListEl.innerHTML = '<div class="side-empty">' + escapeHtml(t('historyLoadError')) + '</div>';
+  }
+}
+
+async function loadSession(sessionId) {
+  const token = await getAccessToken();
+  if (!token) { openAuth('login'); return; }
+  try {
+    const res = await fetch(MESSAGES_URL + '?session_id=' + encodeURIComponent(sessionId), { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'خطأ');
+    messagesEl.innerHTML = '<div class="chat-inner"></div>';
+    conversationHistory = [];
+    data.messages.forEach((m) => {
+      if (m.role === 'user') addMessage(m.content, 'user');
+      else renderAnswer(m.content);
+      conversationHistory.push({ role: m.role, content: m.content });
+    });
+    currentSessionId = sessionId;
+    currentGeometry = null;
+    currentPoint = null;
+    markActiveSession(sessionId);
+    sessionsOverlay.classList.add('hidden');
+  } catch (e) {
+    addMessage(t('historyLoadError') + ': ' + e.message, 'error');
+  }
+}
+
+// حذف محادثة — كنستعملو Supabase مباشرة (نفس جلسة المستخدم المسجل الدخول،
+// RLS كتسمح غير بحذف الصفوف ديالو، وحذف الجلسة كيمسح معاها الرسائل وتحليلات
+// الحقل المرتبطة بيها تلقائياً بفضل ON DELETE CASCADE).
+function askDeleteSession(sessionId) {
+  sessionPendingDelete = sessionId;
+  confirmOverlay.classList.remove('hidden');
+}
+
+confirmCancel.addEventListener('click', () => {
+  sessionPendingDelete = null;
+  confirmOverlay.classList.add('hidden');
+});
+confirmOverlay.addEventListener('click', (e) => {
+  if (e.target === confirmOverlay) { sessionPendingDelete = null; confirmOverlay.classList.add('hidden'); }
+});
+
+confirmDelete.addEventListener('click', async () => {
+  const id = sessionPendingDelete;
+  if (!id) return;
+  confirmDelete.disabled = true;
+  try {
+    const { error } = await supabase.from('chat_sessions').delete().eq('id', id);
+    if (error) throw error;
+    if (currentSessionId === id) resetChat();
+    await refreshSessions();
+    showToast(t('deleteSuccess'));
+  } catch (e) {
+    showToast(t('deleteFail') + (e.message || ''));
+  } finally {
+    confirmDelete.disabled = false;
+    sessionPendingDelete = null;
+    confirmOverlay.classList.add('hidden');
+  }
+});
+
+// مشاركة محادثة — نجيبو الرسائل، نبنيو نص، ونستعملو Web Share API (موبايل)
+// أو ننسخوها للحافظة كبديل (كمبيوتر/متصفحات ما كتدعمش المشاركة)
+async function shareSession(sessionId, title) {
+  const token = await getAccessToken();
+  if (!token) { openAuth('login'); return; }
+  try {
+    const res = await fetch(MESSAGES_URL + '?session_id=' + encodeURIComponent(sessionId), { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'خطأ');
+    const meLabel = { fr: 'Moi: ', ar: 'أنا: ', en: 'Me: ' }[currentLang] || 'Me: ';
+    const defaultTitle = { fr: 'Conversation AgroSynth', ar: 'محادثة AgroSynth', en: 'AgroSynth chat' }[currentLang] || 'AgroSynth chat';
+    const lines = data.messages.map((m) => (m.role === 'user' ? meLabel : 'AgroSynth: ') + m.content);
+    const text = (title || defaultTitle) + '\n\n' + lines.join('\n\n');
+    if (navigator.share) {
+      await navigator.share({ title: title || defaultTitle, text });
+    } else {
+      await navigator.clipboard.writeText(text);
+      showToast({ fr: 'Conversation copiée', ar: 'تم نسخ المحادثة للحافظة', en: 'Chat copied to clipboard' }[currentLang] || 'Chat copied');
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
+    showToast({ fr: 'Partage impossible : ', ar: 'تعذرت المشاركة: ', en: 'Share failed: ' }[currentLang] + (e.message || ''));
+  }
+}
+
+closeSessionsBtn.onclick = () => sessionsOverlay.classList.add('hidden');
+
+// ---------------------------------------------------------------------------
+// أزرار القائمة الجانبية (المساعد / تحليل النباتات / الطقس والري / بيانات الحقل)
+// ---------------------------------------------------------------------------
+const NAV_PROMPTS = {
+  plant:   { fr: 'Je veux diagnostiquer un problème sur ma plante : ', ar: 'بغيت نشخص مشكل فالنبتة ديالي: ', en: 'I want to diagnose a problem on my plant: ' },
+  weather: { fr: "Quelle est la météo de mon champ et quand dois-je irriguer ?", ar: 'شنو حالة الطقس ديال الضيعة ديالي وامتى نسقي؟', en: 'What is the weather at my field and when should I irrigate?' }
+};
+const NAV_ACTIONS = {
+  txtNavAssistant: () => { inputEl.focus(); },
+  txtNavPlant:     () => { inputEl.value = NAV_PROMPTS.plant[currentLang] || NAV_PROMPTS.plant.fr; inputEl.focus(); },
+  txtNavWeather:   () => { inputEl.value = NAV_PROMPTS.weather[currentLang] || NAV_PROMPTS.weather.fr; inputEl.focus(); },
+  txtNavField:     () => { openFieldModal('draw_field'); }
+};
+document.querySelectorAll('.side-section .side-item').forEach((item) => {
+  const id = item.querySelector('span[id^="txtNav"]')?.id;
+  if (!id || !NAV_ACTIONS[id]) return;
+  item.addEventListener('click', () => {
+    if (id !== 'txtNavField') {
+      document.querySelectorAll('.side-item').forEach((i) => i.classList.toggle('active', i === item));
+    }
+    NAV_ACTIONS[id]();
+  });
+});
+
+// تطبيق اللغة الافتراضية بعد تعريف كل العناصر (تفادي خطأ الوصول قبل التهيئة)
+applyLanguage('fr');
+
+// Auto-focus input on load
+inputEl.focus();
+</script>
+
+<div id="__everbee_ai_host" style="color-scheme: initial; forced-color-adjust: initial; math-depth: initial; position-anchor: initial; text-size-adjust: initial; appearance: initial; color: initial; font: initial; font-palette: initial; font-synthesis: initial; position-area: initial; text-orientation: initial; text-rendering: initial; text-spacing-trim: initial; -webkit-font-smoothing: initial; -webkit-locale: initial; -webkit-text-orientation: initial; -webkit-writing-mode: initial; writing-mode: initial; zoom: initial; accent-color: initial; place-content: initial; place-items: initial; place-self: initial; alignment-baseline: initial; anchor-name: initial; anchor-scope: initial; animation-composition: initial; animation: initial; animation-trigger: initial; app-region: initial; aspect-ratio: initial; backdrop-filter: initial; backface-visibility: initial; background: initial; background-blend-mode: initial; baseline-shift: initial; baseline-source: initial; block-size: initial; border-block: initial; border: initial; border-radius: initial; border-collapse: initial; border-end-end-radius: initial; border-end-start-radius: initial; border-inline: initial; border-shape: initial; border-start-end-radius: initial; border-start-start-radius: initial; bottom: initial; box-decoration-break: initial; box-shadow: initial; box-sizing: initial; break-after: initial; break-before: initial; break-inside: initial; buffered-rendering: initial; caption-side: initial; caret-animation: initial; caret-color: initial; caret-shape: initial; clear: initial; clip: initial; clip-path: initial; clip-rule: initial; color-interpolation: initial; color-interpolation-filters: initial; color-rendering: initial; columns: initial; column-fill: initial; gap: initial; rule-break: initial; rule: initial; rule-inset: initial; rule-visibility-items: initial; column-span: initial; contain: initial; contain-intrinsic-block-size: initial; contain-intrinsic-size: initial; contain-intrinsic-inline-size: initial; container: initial; content: initial; content-visibility: initial; corner-shape: initial; corner-block-end-shape: initial; corner-block-start-shape: initial; counter-increment: initial; counter-reset: initial; counter-set: initial; cursor: initial; cx: initial; cy: initial; d: initial; display: initial; dominant-baseline: initial; dynamic-range-limit: initial; empty-cells: initial; field-sizing: initial; fill: initial; fill-opacity: initial; fill-rule: initial; filter: initial; flex: initial; flex-flow: initial; flex-line-count: initial; float: initial; flood-color: initial; flood-opacity: initial; frame-sizing: initial; grid: initial; grid-area: initial; hyphenate-character: initial; hyphenate-limit-chars: initial; hyphens: initial; image-orientation: initial; image-rendering: initial; initial-letter: initial; inline-size: initial; inset-block: initial; inset-inline: initial; interactivity: initial; interest-delay: initial; interpolate-size: initial; isolation: initial; letter-spacing: initial; lighting-color: initial; line-break: initial; list-style: initial; margin-block: initial; margin: initial; margin-inline: initial; marker: initial; mask: initial; mask-type: initial; math-shift: initial; math-style: initial; max-block-size: initial; max-height: initial; max-inline-size: initial; max-width: initial; min-block-size: initial; min-height: initial; min-inline-size: initial; min-width: initial; mix-blend-mode: initial; object-fit: initial; object-position: initial; object-view-box: initial; offset: initial; opacity: initial; order: initial; orphans: initial; outline: initial; outline-offset: initial; overflow-anchor: initial; overflow-block: initial; overflow-clip-margin: initial; overflow-inline: initial; overflow-wrap: initial; overflow: initial; overlay: initial; overscroll-behavior-block: initial; overscroll-behavior-inline: initial; overscroll-behavior: initial; padding-block: initial; padding: initial; padding-inline: initial; page: initial; page-margin-safety: initial; page-orientation: initial; paint-order: initial; perspective: initial; perspective-origin: initial; pointer-events: initial; position-try: initial; position-visibility: initial; print-color-adjust: initial; quotes: initial; r: initial; reading-flow: initial; reading-order: initial; resize: initial; right: initial; rotate: initial; ruby-align: initial; ruby-overhang: initial; ruby-position: initial; rule-overlap: initial; rx: initial; ry: initial; scale: initial; scroll-axis-lock: initial; scroll-behavior: initial; scroll-initial-target: initial; scroll-margin-block: initial; scroll-margin: initial; scroll-margin-inline: initial; scroll-marker-group: initial; scroll-padding-block: initial; scroll-padding: initial; scroll-padding-inline: initial; scroll-snap-align: initial; scroll-snap-stop: initial; scroll-snap-type: initial; scroll-target-group: initial; scroll-timeline: initial; scrollbar-color: initial; scrollbar-gutter: initial; scrollbar-width: initial; shape-image-threshold: initial; shape-margin: initial; shape-outside: initial; shape-rendering: initial; size: initial; speak: initial; stop-color: initial; stop-opacity: initial; stroke: initial; stroke-dasharray: initial; stroke-dashoffset: initial; stroke-linecap: initial; stroke-linejoin: initial; stroke-miterlimit: initial; stroke-opacity: initial; stroke-width: initial; tab-size: initial; table-layout: initial; text-align: initial; text-align-last: initial; text-anchor: initial; text-autospace: initial; text-box: initial; text-combine-upright: initial; text-decoration: initial; text-decoration-skip-ink: initial; text-emphasis: initial; text-emphasis-position: initial; text-fit: initial; text-indent: initial; text-justify: initial; text-overflow: initial; text-shadow: initial; text-transform: initial; text-underline-offset: initial; text-underline-position: initial; text-wrap: initial; timeline-scope: initial; timeline-trigger: initial; touch-action: initial; transform: initial; transform-box: initial; transform-origin: initial; transform-style: initial; transition: initial; translate: initial; trigger-scope: initial; user-select: initial; vector-effect: initial; vertical-align: initial; view-timeline: initial; view-transition-class: initial; view-transition-group: initial; view-transition-name: initial; view-transition-scope: initial; visibility: initial; border-spacing: initial; -webkit-box-align: initial; -webkit-box-decoration-break: initial; -webkit-box-direction: initial; -webkit-box-flex: initial; -webkit-box-ordinal-group: initial; -webkit-box-orient: initial; -webkit-box-pack: initial; -webkit-box-reflect: initial; -webkit-line-break: initial; -webkit-line-clamp: initial; -webkit-mask-box-image: initial; -webkit-rtl-ordering: initial; -webkit-ruby-position: initial; -webkit-tap-highlight-color: initial; -webkit-text-combine: initial; -webkit-text-decorations-in-effect: initial; -webkit-text-fill-color: initial; -webkit-text-security: initial; -webkit-text-stroke: initial; -webkit-user-drag: initial; white-space-collapse: initial; widows: initial; will-change: initial; window-drag: initial; word-break: initial; word-spacing: initial; x: initial; y: initial; position: fixed; top: 0px; left: 0px; width: 0px; height: 0px; z-index: 2147483646;"></div></body></html>
